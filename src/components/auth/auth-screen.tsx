@@ -139,11 +139,13 @@ export function AuthScreen({ mode }: AuthScreenProps) {
               <View className="flex-row items-center justify-between gap-3">
                 <Text className="text-sm font-extrabold text-pronto-ink">Password</Text>
                 {!isSignup ? (
-                  <Pressable className="px-1 py-1">
-                    <Text className="text-xs font-extrabold text-pronto-teal-dark">
-                      Password dimenticata?
-                    </Text>
-                  </Pressable>
+                  <Link href="/forgot-password" asChild>
+                    <Pressable className="px-1 py-1">
+                      <Text className="text-xs font-extrabold text-pronto-teal-dark">
+                        Password dimenticata?
+                      </Text>
+                    </Pressable>
+                  </Link>
                 ) : null}
               </View>
               <TextInput
