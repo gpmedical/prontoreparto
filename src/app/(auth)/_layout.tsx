@@ -1,11 +1,15 @@
 import { Stack } from "expo-router";
 
+import { useCSSVariable } from "@/tw";
+
 export default function AuthLayout() {
+  const prontoTeal = useCSSVariable("--color-pronto-teal");
+
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: "#0097a7" },
+        contentStyle: { backgroundColor: prontoTeal },
       }}
     >
       <Stack.Screen name="login" />

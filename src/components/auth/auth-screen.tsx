@@ -5,7 +5,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Logotype } from "@/components/brand/logotype";
 import { useMockAuth } from "@/features/auth/mock-auth-context";
-import { KeyboardAvoidingView, Pressable, ScrollView, Text, TextInput, View } from "@/tw";
+import {
+  KeyboardAvoidingView,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  useCSSVariable,
+  View,
+} from "@/tw";
 
 type AuthMode = "login" | "signup";
 
@@ -17,6 +25,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { signIn } = useMockAuth();
+  const placeholderTextColor = useCSSVariable("--color-pronto-placeholder");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -103,7 +112,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
                   autoCapitalize="words"
                   autoComplete="name"
                   placeholder="Es. Maria Rossi"
-                  placeholderTextColor="#5c7d84"
+                  placeholderTextColor={placeholderTextColor}
                   value={fullName}
                   onChangeText={setFullName}
                   className="min-h-[52px] rounded-lg border border-pronto-line bg-white px-4 text-base text-pronto-ink"
@@ -119,7 +128,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
                 inputMode="email"
                 keyboardType="email-address"
                 placeholder="nome@ospedale.it"
-                placeholderTextColor="#5c7d84"
+                placeholderTextColor={placeholderTextColor}
                 value={email}
                 onChangeText={setEmail}
                 className="min-h-[52px] rounded-lg border border-pronto-line bg-white px-4 text-base text-pronto-ink"
@@ -141,7 +150,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
                 autoCapitalize="none"
                 autoComplete={isSignup ? "new-password" : "current-password"}
                 placeholder="Password"
-                placeholderTextColor="#5c7d84"
+                placeholderTextColor={placeholderTextColor}
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
@@ -160,7 +169,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
             <View className="h-px bg-pronto-line" />
 
             <View className="flex-row flex-wrap items-center justify-center gap-x-1 gap-y-1">
-              <Text className="text-sm text-[#526f76]">{switchQuestion}</Text>
+              <Text className="text-sm text-pronto-secondary">{switchQuestion}</Text>
               <Link href={switchHref} asChild>
                 <Pressable className="px-1 py-1">
                   <Text className="text-sm font-black text-pronto-teal-dark">{switchLabel}</Text>
