@@ -93,17 +93,18 @@ pnpm start
 pnpm android
 pnpm ios
 pnpm web
-pnpm lint
 ```
 
 Use `pnpm` as the preferred package manager. Before changing dependencies, avoid introducing `package-lock.json` churn and keep `pnpm-lock.yaml` as the source of dependency lock state.
+
+Do not run lint commands in this project. Never run `pnpm lint`, `npm run lint`, `npx eslint`, `eslint`, or any Expo lint/eslint wrapper, because lint tooling has repeatedly modified dependencies and created local package-manager problems.
 
 ## Testing and Verification
 
 When code changes are made:
 
 - Run the narrowest relevant verification first.
-- Run `npm run lint` when touching TypeScript or React Native code.
+- Do not run lint or eslint. Prefer TypeScript checks or targeted runtime verification instead.
 - For UI work, verify at least one mobile-sized viewport/device path.
 - For calling and email actions, verify generated URLs and graceful handling when the device cannot open them.
 - For persistence, verify selected hospital and favourites survive app restart.
