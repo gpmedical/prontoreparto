@@ -9,7 +9,6 @@ import {
   View as RNView,
 } from "react-native";
 import { useCssElement } from "react-native-css";
-import { useNativeVariable } from "react-native-css/native";
 
 type CssComponent = React.ComponentType<Record<string, unknown>>;
 type CssElement = (
@@ -22,11 +21,7 @@ const cssElement = useCssElement as unknown as CssElement;
 const cssProps = (props: unknown) => props as Record<string, unknown>;
 
 export function useCSSVariable(variable: string) {
-  if (process.env.EXPO_OS === "web") {
-    return `var(${variable})`;
-  }
-
-  return useNativeVariable(variable) as string;
+  return `var(${variable})`;
 }
 
 export const Link = (

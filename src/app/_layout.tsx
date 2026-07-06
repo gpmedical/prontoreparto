@@ -5,11 +5,8 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { MockAuthProvider } from "@/features/auth/mock-auth-context";
-import { useCSSVariable } from "@/tw";
 
 export default function RootLayout() {
-  const prontoTeal = useCSSVariable("--color-pronto-teal");
-
   return (
     <SafeAreaProvider>
       <MockAuthProvider>
@@ -17,7 +14,6 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: prontoTeal },
           }}
         >
           <Stack.Screen name="(auth)" />
