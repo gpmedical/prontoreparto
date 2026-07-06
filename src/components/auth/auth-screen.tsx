@@ -1,5 +1,6 @@
 import { Link, router } from "expo-router";
 import { useState } from "react";
+import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Logotype } from "@/components/brand/logotype";
@@ -14,6 +15,7 @@ type AuthScreenProps = {
 
 export function AuthScreen({ mode }: AuthScreenProps) {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { signIn } = useMockAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,11 +28,22 @@ export function AuthScreen({ mode }: AuthScreenProps) {
     router.replace("/");
   }
 
+  const switchHref = isSignup ? "/login" : "/signup";
+  const eyebrow = isSignup ? "Nuovo profilo" : "Accesso riservato";
+  const title = isSignup ? "Crea il tuo account" : "Bentornato";
+  const description = isSignup
+    ? "Registra un accesso per consultare rapidamente contatti, reparti e ruoli interni."
+    : "Accedi alla rubrica interna per trovare subito il contatto giusto.";
+  const submitLabel = isSignup ? "Crea account" : "Accedi";
+  const switchQuestion = isSignup ? "Hai gia un account?" : "Non hai ancora un account?";
+  const switchLabel = isSignup ? "Accedi" : "Crea account";
+  const contentWidth = Math.min(Math.max(width - 40, 280), 440);
+
   return (
     <KeyboardAvoidingView className="flex-1 bg-pronto-teal" behavior="padding">
       <ScrollView
         className="flex-1 bg-pronto-teal"
-        contentContainerClassName="grow justify-center gap-7 px-6"
+        contentContainerClassName="grow items-center justify-center gap-7 px-5"
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
@@ -38,88 +51,128 @@ export function AuthScreen({ mode }: AuthScreenProps) {
           paddingTop: Math.max(insets.top, 36),
         }}
       >
-        <View className="gap-3.5">
+        <View className="gap-6" style={{ width: contentWidth }}>
           <Logotype />
-          <View className="gap-2">
-            <Text className="text-[30px] font-extrabold text-pronto-mist">
-              {isSignup ? "Crea il tuo accesso" : "Accedi al reparto"}
-            </Text>
-            <Text className="text-base leading-[22px] text-pronto-muted">
-              {isSignup
-                ? "Prepara il profilo per consultare contatti e turni ospedalieri."
-                : "Entra per raggiungere rapidamente rubrica, preferiti e contatti interni."}
-            </Text>
-          </View>
-        </View>
 
-        <View
-          className="gap-4 rounded-lg bg-[#f7ffff] p-[18px]"
-        >
-          {isSignup ? (
+          <View className="gap-4 rounded-lg border border-white/30 bg-white/10 p-3">
+            <View className="flex-row gap-2 rounded-lg bg-white/15 p-1">
+              <Link href="/login" asChild>
+                <Pressable
+                  className={`min-h-10 flex-1 items-center justify-center rounded-lg px-3 ${
+                    isSignup ? "bg-transparent" : "bg-white"
+                  }`}
+                >
+                  <Text
+                    className={`text-sm font-extrabold ${
+                      isSignup ? "text-pronto-mist" : "text-pronto-teal-dark"
+                    }`}
+                  >
+                    Accedi
+                  </Text>
+                </Pressable>
+              </Link>
+              <Link href="/signup" asChild>
+                <Pressable
+                  className={`min-h-10 flex-1 items-center justify-center rounded-lg px-3 ${
+                    isSignup ? "bg-white" : "bg-transparent"
+                  }`}
+                >
+                  <Text
+                    className={`text-sm font-extrabold ${
+                      isSignup ? "text-pronto-teal-dark" : "text-pronto-mist"
+                    }`}
+                  >
+                    Registrati
+                  </Text>
+                </Pressable>
+              </Link>
+            </View>
+
+            <View className="gap-1 px-1">
+              <Text className="text-xs font-black uppercase text-pronto-muted">{eyebrow}</Text>
+              <Text className="text-[32px] font-black text-white">{title}</Text>
+              <Text className="text-base leading-[22px] text-pronto-mist">{description}</Text>
+            </View>
+          </View>
+
+          <View className="gap-5 rounded-lg border border-pronto-line bg-pronto-surface p-5 shadow-lg">
+            {isSignup ? (
+              <View className="gap-2">
+                <Text className="text-sm font-extrabold text-pronto-ink">Nome e cognome</Text>
+                <TextInput
+                  autoCapitalize="words"
+                  autoComplete="name"
+                  placeholder="Es. Maria Rossi"
+                  placeholderTextColor="#5c7d84"
+                  value={fullName}
+                  onChangeText={setFullName}
+                  className="min-h-[52px] rounded-lg border border-pronto-line bg-white px-4 text-base text-pronto-ink"
+                />
+              </View>
+            ) : null}
+
             <View className="gap-2">
-              <Text className="text-sm font-bold text-pronto-ink">Nome e cognome</Text>
+              <Text className="text-sm font-extrabold text-pronto-ink">Email istituzionale</Text>
               <TextInput
-                autoCapitalize="words"
-                autoComplete="name"
-                placeholder="Es. Maria Rossi"
-                placeholderTextColor="#6d8585"
-                value={fullName}
-                onChangeText={setFullName}
-                className="rounded-lg border border-[#cfe4e4] px-3.5 py-3 text-base text-pronto-ink"
+                autoCapitalize="none"
+                autoComplete="email"
+                inputMode="email"
+                keyboardType="email-address"
+                placeholder="nome@ospedale.it"
+                placeholderTextColor="#5c7d84"
+                value={email}
+                onChangeText={setEmail}
+                className="min-h-[52px] rounded-lg border border-pronto-line bg-white px-4 text-base text-pronto-ink"
               />
             </View>
-          ) : null}
 
-          <View className="gap-2">
-            <Text className="text-sm font-bold text-pronto-ink">Email istituzionale</Text>
-            <TextInput
-              autoCapitalize="none"
-              autoComplete="email"
-              inputMode="email"
-              keyboardType="email-address"
-              placeholder="nome@ospedale.it"
-              placeholderTextColor="#6d8585"
-              value={email}
-              onChangeText={setEmail}
-              className="rounded-lg border border-[#cfe4e4] px-3.5 py-3 text-base text-pronto-ink"
-            />
+            <View className="gap-2">
+              <View className="flex-row items-center justify-between gap-3">
+                <Text className="text-sm font-extrabold text-pronto-ink">Password</Text>
+                {!isSignup ? (
+                  <Pressable className="px-1 py-1">
+                    <Text className="text-xs font-extrabold text-pronto-teal-dark">
+                      Password dimenticata?
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+              <TextInput
+                autoCapitalize="none"
+                autoComplete={isSignup ? "new-password" : "current-password"}
+                placeholder="Password"
+                placeholderTextColor="#5c7d84"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                className="min-h-[52px] rounded-lg border border-pronto-line bg-white px-4 text-base text-pronto-ink"
+              />
+            </View>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleSubmit}
+              className="min-h-[54px] items-center justify-center rounded-lg bg-pronto-teal-dark px-4 active:bg-pronto-ink"
+            >
+              <Text className="text-base font-black text-white">{submitLabel}</Text>
+            </Pressable>
+
+            <View className="h-px bg-pronto-line" />
+
+            <View className="flex-row flex-wrap items-center justify-center gap-x-1 gap-y-1">
+              <Text className="text-sm text-[#526f76]">{switchQuestion}</Text>
+              <Link href={switchHref} asChild>
+                <Pressable className="px-1 py-1">
+                  <Text className="text-sm font-black text-pronto-teal-dark">{switchLabel}</Text>
+                </Pressable>
+              </Link>
+            </View>
           </View>
 
-          <View className="gap-2">
-            <Text className="text-sm font-bold text-pronto-ink">Password</Text>
-            <TextInput
-              autoCapitalize="none"
-              autoComplete={isSignup ? "new-password" : "current-password"}
-              placeholder="Password"
-              placeholderTextColor="#6d8585"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              className="rounded-lg border border-[#cfe4e4] px-3.5 py-3 text-base text-pronto-ink"
-            />
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={handleSubmit}
-            className="min-h-[50px] items-center justify-center rounded-lg bg-pronto-teal px-4 active:bg-pronto-teal-dark"
-          >
-            <Text className="text-base font-extrabold text-white">
-              {isSignup ? "Crea account" : "Accedi"}
+          <View className="rounded-lg border border-white/25 bg-white/10 px-4 py-3">
+            <Text className="text-center text-sm font-semibold leading-5 text-pronto-mist">
+              Accesso pensato per personale sanitario e servizi interni.
             </Text>
-          </Pressable>
-
-          <View className="items-center">
-            <Text className="text-sm text-[#4c6666]">
-              {isSignup ? "Hai gia un account?" : "Non hai ancora un account?"}
-            </Text>
-            <Link href={isSignup ? "/login" : "/signup"} asChild>
-              <Pressable className="p-2">
-                <Text className="text-[15px] font-extrabold text-pronto-teal-dark">
-                  {isSignup ? "Vai al login" : "Registrati"}
-                </Text>
-              </Pressable>
-            </Link>
           </View>
         </View>
       </ScrollView>

@@ -32,7 +32,7 @@ export function HomeScreen() {
         <Pressable
           accessibilityRole="button"
           onPress={signOut}
-          className="min-h-[50px] items-center justify-center rounded-lg bg-white px-4 active:bg-[#dff7f7]"
+          className="min-h-[50px] items-center justify-center rounded-lg bg-white px-4 active:bg-pronto-teal-soft"
         >
           <Text className="text-base font-extrabold text-pronto-teal-dark">Esci</Text>
         </Pressable>

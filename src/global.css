@@ -5,11 +5,14 @@
 
 @layer theme {
   @theme {
-    --color-pronto-teal: #007d7d;
-    --color-pronto-teal-dark: #005f5f;
-    --color-pronto-ink: #0f2626;
-    --color-pronto-mist: #e8ffff;
-    --color-pronto-muted: #caeeee;
+    --color-pronto-teal: #0097a7;
+    --color-pronto-teal-dark: #006978;
+    --color-pronto-teal-soft: #d9f6f8;
+    --color-pronto-ink: #082f3a;
+    --color-pronto-mist: #ecfeff;
+    --color-pronto-muted: #bfecf1;
+    --color-pronto-surface: #f7fdfe;
+    --color-pronto-line: #c7e8ed;
   }
 }
 
