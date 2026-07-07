@@ -24,7 +24,7 @@ export function HomeScreen() {
           <View className="gap-2.5">
             <Text className="text-[30px] font-extrabold text-pronto-mist">Home</Text>
             <Text className="text-base leading-[22px] text-pronto-muted">
-              Area riservata pronta per rubrica, ospedali e preferiti.
+              Area riservata.
             </Text>
           </View>
         </View>

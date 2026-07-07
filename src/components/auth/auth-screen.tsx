@@ -38,13 +38,9 @@ export function AuthScreen({ mode }: AuthScreenProps) {
   }
 
   const switchHref = isSignup ? "/login" : "/signup";
-  const eyebrow = isSignup ? "Nuovo profilo" : "Accesso riservato";
-  const title = isSignup ? "Crea il tuo account" : "Bentornato";
-  const description = isSignup
-    ? "Registra un accesso per consultare rapidamente contatti, reparti e ruoli interni."
-    : "Accedi alla rubrica interna per trovare subito il contatto giusto.";
+  const title = isSignup ? "Crea nuovo account" : "Accedi";
   const submitLabel = isSignup ? "Crea account" : "Accedi";
-  const switchQuestion = isSignup ? "Hai gia un account?" : "Non hai ancora un account?";
+  const switchQuestion = isSignup ? "Hai già un account?" : "Non hai ancora un account?";
   const switchLabel = isSignup ? "Accedi" : "Crea account";
   const contentWidth = Math.min(Math.max(width - 40, 280), 440);
 
@@ -72,7 +68,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
                   }`}
                 >
                   <Text
-                    className={`text-sm font-extrabold ${
+                    className={`text-sm font-bold ${
                       isSignup ? "text-pronto-mist" : "text-pronto-teal-dark"
                     }`}
                   >
@@ -87,7 +83,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
                   }`}
                 >
                   <Text
-                    className={`text-sm font-extrabold ${
+                    className={`text-sm font-bold ${
                       isSignup ? "text-pronto-teal-dark" : "text-pronto-mist"
                     }`}
                   >
@@ -98,16 +94,14 @@ export function AuthScreen({ mode }: AuthScreenProps) {
             </View>
 
             <View className="gap-1 px-1">
-              <Text className="text-xs font-black uppercase text-pronto-muted">{eyebrow}</Text>
-              <Text className="text-[32px] font-black text-white">{title}</Text>
-              <Text className="text-base leading-[22px] text-pronto-mist">{description}</Text>
+              <Text className="text-[32px] text-white text-center font-bold">{title}</Text>
             </View>
           </View>
 
           <View className="gap-5 rounded-lg border border-pronto-line bg-pronto-surface p-5 shadow-lg">
             {isSignup ? (
               <View className="gap-2">
-                <Text className="text-sm font-extrabold text-pronto-ink">Nome e cognome</Text>
+                <Text className="text-sm font-bold text-pronto-ink">Nome e cognome</Text>
                 <TextInput
                   autoCapitalize="words"
                   autoComplete="name"
@@ -121,7 +115,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
             ) : null}
 
             <View className="gap-2">
-              <Text className="text-sm font-extrabold text-pronto-ink">Email istituzionale</Text>
+              <Text className="text-sm font-bold text-pronto-ink">Email</Text>
               <TextInput
                 autoCapitalize="none"
                 autoComplete="email"
@@ -137,11 +131,11 @@ export function AuthScreen({ mode }: AuthScreenProps) {
 
             <View className="gap-2">
               <View className="flex-row items-center justify-between gap-3">
-                <Text className="text-sm font-extrabold text-pronto-ink">Password</Text>
+                <Text className="text-sm font-bold text-pronto-ink">Password</Text>
                 {!isSignup ? (
                   <Link href="/forgot-password" asChild>
                     <Pressable className="px-1 py-1">
-                      <Text className="text-xs font-extrabold text-pronto-teal-dark">
+                      <Text className="text-xs font-bold text-pronto-teal-dark">
                         Password dimenticata?
                       </Text>
                     </Pressable>
@@ -165,26 +159,10 @@ export function AuthScreen({ mode }: AuthScreenProps) {
               onPress={handleSubmit}
               className="min-h-[54px] items-center justify-center rounded-lg bg-pronto-teal-dark px-4 active:bg-pronto-ink"
             >
-              <Text className="text-base font-black text-white">{submitLabel}</Text>
+              <Text className="text-base font-bold text-white">{submitLabel}</Text>
             </Pressable>
-
-            <View className="h-px bg-pronto-line" />
-
-            <View className="flex-row flex-wrap items-center justify-center gap-x-1 gap-y-1">
-              <Text className="text-sm text-pronto-secondary">{switchQuestion}</Text>
-              <Link href={switchHref} asChild>
-                <Pressable className="px-1 py-1">
-                  <Text className="text-sm font-black text-pronto-teal-dark">{switchLabel}</Text>
-                </Pressable>
-              </Link>
-            </View>
           </View>
 
-          <View className="rounded-lg border border-white/25 bg-white/10 px-4 py-3">
-            <Text className="text-center text-sm font-semibold leading-5 text-pronto-mist">
-              Accesso pensato per personale sanitario e servizi interni.
-            </Text>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
