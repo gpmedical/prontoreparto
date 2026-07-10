@@ -37,11 +37,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
     router.replace("/");
   }
 
-  const switchHref = isSignup ? "/login" : "/signup";
-  const title = isSignup ? "Crea nuovo account" : "Accedi";
   const submitLabel = isSignup ? "Crea account" : "Accedi";
-  const switchQuestion = isSignup ? "Hai già un account?" : "Non hai ancora un account?";
-  const switchLabel = isSignup ? "Accedi" : "Crea account";
   const contentWidth = Math.min(Math.max(width - 40, 280), 440);
 
   return (
@@ -91,10 +87,6 @@ export function AuthScreen({ mode }: AuthScreenProps) {
                   </Text>
                 </Pressable>
               </Link>
-            </View>
-
-            <View className="gap-1 px-1">
-              <Text className="text-[32px] text-white text-center font-bold">{title}</Text>
             </View>
           </View>
 
