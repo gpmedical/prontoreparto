@@ -1,9 +1,12 @@
+import { useAuth } from "@clerk/expo";
 import { Redirect, Stack } from "expo-router";
 
-import { useMockAuth } from "@/features/auth/mock-auth-context";
-
 export default function AppLayout() {
-  const { isSignedIn } = useMockAuth();
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return null;
+  }
 
   if (!isSignedIn) {
     return <Redirect href="/login" />;

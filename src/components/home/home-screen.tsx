@@ -1,12 +1,18 @@
+import { useClerk } from "@clerk/expo";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Logotype } from "@/components/brand/logotype";
-import { useMockAuth } from "@/features/auth/mock-auth-context";
 import { Pressable, ScrollView, Text, View } from "@/tw";
 
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { signOut } = useMockAuth();
+  const { signOut } = useClerk();
+
+  async function handleSignOut() {
+    await signOut();
+    router.replace("/login");
+  }
 
   return (
     <ScrollView
@@ -31,7 +37,7 @@ export function HomeScreen() {
 
         <Pressable
           accessibilityRole="button"
-          onPress={signOut}
+          onPress={handleSignOut}
           className="min-h-[50px] items-center justify-center rounded-lg bg-white px-4 active:bg-pronto-teal-soft"
         >
           <Text className="text-base font-extrabold text-pronto-teal-dark">Esci</Text>
