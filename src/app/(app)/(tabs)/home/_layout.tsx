@@ -12,8 +12,8 @@ export default function HomeStackLayout() {
         headerTitleStyle: { color: "#082f3a", fontWeight: "700" },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Rubrica" }} />
-      <Stack.Screen name="contatto/[id]" options={{ title: "Dettaglio contatto" }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="contatto/[id]" options={{ headerTitle: "" }} />
     </Stack>
   );
 }

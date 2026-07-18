@@ -1,12 +1,11 @@
 import * as Linking from "expo-linking";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Alert } from "react-native";
 
 import { CONTACT_PRESENTATION, getContactValueLabel } from "@/components/directory/contact-presentation";
 import { AppSymbol } from "@/components/ui/app-symbol";
 import {
-  formatDialNumber,
   getContactActionUrl,
   type ContactId,
   useDirectory,
@@ -49,7 +48,6 @@ export function ContactDetailScreen() {
         contentContainerClassName="grow items-center justify-center gap-3 px-6 py-10"
         contentInsetAdjustmentBehavior="automatic"
       >
-        <Stack.Screen options={{ title: "Contatto non trovato" }} />
         <AppSymbol name="info" size={32} tintColor="#5c7d84" />
         <Text selectable className="text-center text-lg font-extrabold text-pronto-ink">
           Contatto non disponibile
@@ -65,10 +63,6 @@ export function ContactDetailScreen() {
   const favorite = isFavorite(contact.id);
   const actionUrl = getContactActionUrl(contact, hospital);
   const isEmailAction = contact.type === "email";
-  const fullPhoneNumber =
-    contact.type === "fisso"
-      ? formatDialNumber(hospital.phonePrefix, contact.value)
-      : null;
 
   async function handleContactAction() {
     if (!actionUrl) {
@@ -109,17 +103,8 @@ export function ContactDetailScreen() {
       contentContainerClassName="grow gap-5 px-4 pb-8 pt-3"
       contentInsetAdjustmentBehavior="automatic"
     >
-      <Stack.Screen options={{ title: contact.name }} />
-
       <View className="flex-row items-start gap-3 rounded-2xl border border-pronto-line bg-white p-5">
         <View className="min-w-0 flex-1 gap-2">
-          <Text className="text-xs font-bold uppercase tracking-wider text-pronto-placeholder">
-            {contact.kind === "reparto"
-              ? "Reparto"
-              : contact.kind === "servizio"
-                ? "Servizio"
-                : "Ruolo"}
-          </Text>
           <Text selectable className="text-[27px] font-extrabold leading-8 text-pronto-ink">
             {contact.name}
           </Text>
@@ -167,17 +152,6 @@ export function ContactDetailScreen() {
           {contact.value}
         </Text>
 
-        {contact.type === "fisso" ? (
-          <View className="items-center gap-1">
-            <Text selectable className="text-sm font-bold text-pronto-secondary">
-              Interno a 4 cifre
-            </Text>
-            <Text selectable className="text-center text-xs leading-5 text-pronto-placeholder">
-              Da fuori ospedale verrà composto {fullPhoneNumber}.
-            </Text>
-          </View>
-        ) : null}
-
         {contact.type === "cicalino" ? (
           <View className="max-w-[360px] flex-row gap-2 rounded-xl bg-pronto-pager-soft px-3.5 py-3">
             <AppSymbol name="info" size={18} tintColor="#b45309" />
@@ -218,9 +192,6 @@ export function ContactDetailScreen() {
         </Pressable>
       ) : null}
 
-      <Text selectable className="text-center text-xs leading-4 text-pronto-placeholder">
-        Contatto dimostrativo · verifica sempre il destinatario prima di procedere.
-      </Text>
     </ScrollView>
   );
 }

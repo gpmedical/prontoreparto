@@ -10,8 +10,8 @@ export default function FavoritesStackLayout() {
         headerTitleStyle: { color: "#082f3a", fontWeight: "700" },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Preferiti" }} />
-      <Stack.Screen name="contatto/[id]" options={{ title: "Dettaglio contatto" }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="contatto/[id]" options={{ headerTitle: "" }} />
     </Stack>
   );
 }

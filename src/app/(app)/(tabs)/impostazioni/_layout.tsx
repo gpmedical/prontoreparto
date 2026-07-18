@@ -10,7 +10,7 @@ export default function SettingsStackLayout() {
         headerTitleStyle: { color: "#082f3a", fontWeight: "700" },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Impostazioni" }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
     </Stack>
   );
 }

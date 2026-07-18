@@ -43,6 +43,20 @@ async function writeStorageValue(key: string, value: string): Promise<void> {
   webStorage.setItem(key, value);
 }
 
+async function deleteStorageValue(key: string): Promise<void> {
+  if (await SecureStore.isAvailableAsync()) {
+    await SecureStore.deleteItemAsync(key);
+    return;
+  }
+
+  const webStorage = getWebStorage();
+  if (!webStorage) {
+    throw new Error("Persistent storage is not available on this platform.");
+  }
+
+  webStorage.removeItem(key);
+}
+
 function isDirectoryPreferences(value: unknown): value is DirectoryPreferences {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -83,4 +97,8 @@ export async function saveDirectoryPreferences(
     getDirectoryStorageKey(userId),
     JSON.stringify(preferences),
   );
+}
+
+export async function deleteDirectoryPreferences(userId: string): Promise<void> {
+  await deleteStorageValue(getDirectoryStorageKey(userId));
 }

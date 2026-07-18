@@ -10,7 +10,7 @@ export default function AddStackLayout() {
         headerTitleStyle: { color: "#082f3a", fontWeight: "700" },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Aggiungi" }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
     </Stack>
   );
 }
