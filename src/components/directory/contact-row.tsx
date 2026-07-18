@@ -10,6 +10,7 @@ type ContactRowProps = {
   detailTab?: "home" | "preferiti";
   hospitalName?: string;
   isFavorite?: boolean;
+  showDetails?: boolean;
 };
 
 export function ContactRow({
@@ -17,6 +18,7 @@ export function ContactRow({
   detailTab = "home",
   hospitalName,
   isFavorite = false,
+  showDetails = true,
 }: ContactRowProps) {
   const presentation = CONTACT_PRESENTATION[contact.type];
   const valueLabel = contact.value;
@@ -31,9 +33,15 @@ export function ContactRow({
       asChild
     >
       <Pressable
-        accessibilityLabel={`${contact.name}, ${presentation.label}, ${valueLabel}`}
+        accessibilityLabel={
+          showDetails
+            ? `${contact.name}, ${presentation.label}, ${valueLabel}`
+            : contact.name
+        }
         accessibilityRole="link"
-        className="min-h-[78px] flex-row items-center gap-3 bg-white px-4 py-3 active:bg-pronto-teal-soft"
+        className={`flex-row items-center gap-3 bg-white px-4 py-3 active:bg-pronto-teal-soft ${
+          showDetails ? "min-h-[78px]" : "min-h-[62px]"
+        }`}
       >
         <View
           className="w-1 self-stretch rounded-full"
@@ -53,30 +61,32 @@ export function ContactRow({
             ) : null}
           </View>
 
-          <View className="flex-row flex-wrap items-center gap-2">
-            <View
-              className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
-              style={{ backgroundColor: presentation.softColor }}
-            >
-              <AppSymbol name={presentation.icon} size={15} tintColor={presentation.color} />
+          {showDetails ? (
+            <View className="flex-row flex-wrap items-center gap-2">
+              <View
+                className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
+                style={{ backgroundColor: presentation.softColor }}
+              >
+                <AppSymbol name={presentation.icon} size={15} tintColor={presentation.color} />
+                <Text
+                  selectable
+                  className="text-sm font-bold"
+                  style={{ color: presentation.color }}
+                >
+                  {presentation.label}
+                </Text>
+              </View>
               <Text
                 selectable
-                className="text-sm font-bold"
-                style={{ color: presentation.color }}
+                className="min-w-0 flex-1 text-base text-pronto-secondary"
+                numberOfLines={1}
               >
-                {presentation.label}
+                {valueLabel}
               </Text>
             </View>
-            <Text
-              selectable
-              className="min-w-0 flex-1 text-base text-pronto-secondary"
-              numberOfLines={1}
-            >
-              {valueLabel}
-            </Text>
-          </View>
+          ) : null}
 
-          {hospitalName ? (
+          {showDetails && hospitalName ? (
             <Text selectable className="text-xs text-pronto-placeholder" numberOfLines={1}>
               {hospitalName}
             </Text>

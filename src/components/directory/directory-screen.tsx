@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import { ActivityIndicator } from "react-native";
+import Animated, { FadeInDown, ReduceMotion } from "react-native-reanimated";
 
 import { ContactRow } from "@/components/directory/contact-row";
 import { HospitalSelector } from "@/components/directory/hospital-selector";
 import { AppSymbol } from "@/components/ui/app-symbol";
-import { useDirectory, type DirectoryContact, type HospitalId } from "@/features/directory";
+import { useDirectory, type HospitalId } from "@/features/directory";
 import { Pressable, ScrollView, Text, TextInput, useCSSVariable, View } from "@/tw";
 
 function normalizeSearchText(value: string) {
@@ -12,19 +13,6 @@ function normalizeSearchText(value: string) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("it-IT");
-}
-
-function groupContacts(contacts: readonly DirectoryContact[]) {
-  const groups = new Map<string, DirectoryContact[]>();
-
-  contacts.forEach((contact) => {
-    const letter = contact.name.trim().charAt(0).toLocaleUpperCase("it-IT") || "#";
-    const group = groups.get(letter) ?? [];
-    group.push(contact);
-    groups.set(letter, group);
-  });
-
-  return Array.from(groups, ([letter, items]) => ({ letter, items }));
 }
 
 export function DirectoryScreen() {
@@ -43,18 +31,18 @@ export function DirectoryScreen() {
 
   const filteredContacts = useMemo(() => {
     const normalizedQuery = normalizeSearchText(query.trim());
+    const matchingContacts = normalizedQuery
+      ? selectedContacts.filter((contact) => {
+          const searchableText = [contact.name, contact.value, ...(contact.searchTerms ?? [])]
+            .join(" ");
+          return normalizeSearchText(searchableText).includes(normalizedQuery);
+        })
+      : selectedContacts;
 
-    if (!normalizedQuery) {
-      return selectedContacts;
-    }
-
-    return selectedContacts.filter((contact) => {
-      const searchableText = [contact.name, contact.value, ...(contact.searchTerms ?? [])]
-        .join(" ");
-      return normalizeSearchText(searchableText).includes(normalizedQuery);
-    });
+    return [...matchingContacts].sort((firstContact, secondContact) =>
+      firstContact.name.localeCompare(secondContact.name, "it-IT", { sensitivity: "base" }),
+    );
   }, [query, selectedContacts]);
-  const groupedContacts = useMemo(() => groupContacts(filteredContacts), [filteredContacts]);
 
   if (!isHydrated || !selectedHospital) {
     return (
@@ -79,10 +67,15 @@ export function DirectoryScreen() {
   return (
     <View className="flex-1 bg-pronto-surface">
       <ScrollView
+        alwaysBounceVertical
         className="flex-1"
         contentContainerClassName="gap-5 px-4 pb-8 pt-3"
         contentInsetAdjustmentBehavior="automatic"
+        decelerationRate="normal"
+        keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+        showsVerticalScrollIndicator
       >
         <HospitalSelector
           hospitals={hospitals}
@@ -116,25 +109,25 @@ export function DirectoryScreen() {
         />
         </View>
 
-        <View className="gap-3">
-        {groupedContacts.length > 0 ? (
-          groupedContacts.map(({ letter, items }) => (
-            <View className="gap-2" key={letter}>
-              <Text className="px-1 text-sm font-extrabold text-pronto-teal-dark">
-                {letter}
-              </Text>
-              <View className="overflow-hidden rounded-2xl border border-pronto-line">
-                {items.map((contact, index) => (
-                  <View
-                    className={index > 0 ? "border-t border-pronto-line" : ""}
-                    key={contact.id}
-                  >
-                    <ContactRow contact={contact} isFavorite={isFavorite(contact.id)} />
-                  </View>
-                ))}
+        <Animated.View
+          entering={FadeInDown.duration(220).reduceMotion(ReduceMotion.System)}
+          key={selectedHospital.id}
+        >
+        {filteredContacts.length > 0 ? (
+          <View className="overflow-hidden rounded-2xl border border-pronto-line">
+            {filteredContacts.map((contact, index) => (
+              <View
+                className={index > 0 ? "border-t border-pronto-line" : ""}
+                key={contact.id}
+              >
+                <ContactRow
+                  contact={contact}
+                  isFavorite={isFavorite(contact.id)}
+                  showDetails={false}
+                />
               </View>
-            </View>
-          ))
+            ))}
+          </View>
         ) : (
           <View className="items-center gap-2 rounded-2xl border border-pronto-line bg-white px-5 py-8">
             <AppSymbol name="search" size={28} tintColor="#5c7d84" />
@@ -146,7 +139,7 @@ export function DirectoryScreen() {
             </Text>
           </View>
         )}
-        </View>
+        </Animated.View>
       </ScrollView>
 
       {isHospitalMenuOpen ? (
