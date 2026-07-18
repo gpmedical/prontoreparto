@@ -1,5 +1,5 @@
-import { HomeScreen } from "@/components/home/home-screen";
+import { Redirect } from "expo-router";
 
 export default function HomeRoute() {
-  return <HomeScreen />;
+  return <Redirect href="/home" />;
 }

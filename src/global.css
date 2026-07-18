@@ -15,6 +15,14 @@
     --color-pronto-line: #c7e8ed;
     --color-pronto-placeholder: #5c7d84;
     --color-pronto-secondary: #526f76;
+    --color-pronto-phone: #2563eb;
+    --color-pronto-phone-soft: #eff6ff;
+    --color-pronto-pager: #b45309;
+    --color-pronto-pager-soft: #fffbeb;
+    --color-pronto-email: #7c3aed;
+    --color-pronto-email-soft: #f5f3ff;
+    --color-pronto-danger: #b42318;
+    --color-pronto-danger-soft: #fef3f2;
   }
 }
 

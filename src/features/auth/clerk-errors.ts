@@ -1,8 +1,22 @@
 import { isClerkAPIResponseError } from "@clerk/expo";
 
+import { getTranslatedClerkError } from "@/features/auth/clerk-error-translations";
+
 export function getClerkErrorMessage(error: unknown, fallback: string) {
   if (isClerkAPIResponseError(error)) {
-    return error.errors[0]?.longMessage ?? error.errors[0]?.message ?? fallback;
+    const primaryError = error.errors[0];
+
+    return (
+      getTranslatedClerkError(primaryError) ??
+      primaryError?.longMessage ??
+      primaryError?.message ??
+      fallback
+    );
+  }
+
+  const translatedError = getTranslatedClerkError(error);
+  if (translatedError) {
+    return translatedError;
   }
 
   if (error instanceof Error) {

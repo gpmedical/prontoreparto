@@ -1,5 +1,8 @@
 import { useAuth } from "@clerk/expo";
 import { Redirect, Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+
+import { DirectoryProvider } from "@/features/directory";
 
 export default function AppLayout() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -13,12 +16,12 @@ export default function AppLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="index" />
-    </Stack>
+    <DirectoryProvider>
+      <StatusBar style="dark" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </DirectoryProvider>
   );
 }
