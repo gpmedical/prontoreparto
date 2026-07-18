@@ -1,6 +1,6 @@
 import { Link } from "expo-router";
 
-import { CONTACT_PRESENTATION, getContactValueLabel } from "@/components/directory/contact-presentation";
+import { CONTACT_PRESENTATION } from "@/components/directory/contact-presentation";
 import { AppSymbol } from "@/components/ui/app-symbol";
 import type { DirectoryContact } from "@/features/directory";
 import { Pressable, Text, View } from "@/tw";
@@ -19,7 +19,7 @@ export function ContactRow({
   isFavorite = false,
 }: ContactRowProps) {
   const presentation = CONTACT_PRESENTATION[contact.type];
-  const valueLabel = getContactValueLabel(contact);
+  const valueLabel = contact.value;
   const detailPath =
     detailTab === "preferiti"
       ? "/preferiti/contatto/[id]"
@@ -55,13 +55,13 @@ export function ContactRow({
 
           <View className="flex-row flex-wrap items-center gap-2">
             <View
-              className="flex-row items-center gap-1.5 rounded-full px-2.5 py-1"
+              className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
               style={{ backgroundColor: presentation.softColor }}
             >
-              <AppSymbol name={presentation.icon} size={13} tintColor={presentation.color} />
+              <AppSymbol name={presentation.icon} size={15} tintColor={presentation.color} />
               <Text
                 selectable
-                className="text-xs font-bold"
+                className="text-sm font-bold"
                 style={{ color: presentation.color }}
               >
                 {presentation.label}
@@ -69,7 +69,7 @@ export function ContactRow({
             </View>
             <Text
               selectable
-              className="min-w-0 flex-1 text-sm text-pronto-secondary"
+              className="min-w-0 flex-1 text-base text-pronto-secondary"
               numberOfLines={1}
             >
               {valueLabel}

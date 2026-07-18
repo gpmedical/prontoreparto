@@ -4,8 +4,8 @@ import { ActivityIndicator } from "react-native";
 import { ContactRow } from "@/components/directory/contact-row";
 import { HospitalSelector } from "@/components/directory/hospital-selector";
 import { AppSymbol } from "@/components/ui/app-symbol";
-import { useDirectory, type DirectoryContact } from "@/features/directory";
-import { ScrollView, Text, TextInput, useCSSVariable, View } from "@/tw";
+import { useDirectory, type DirectoryContact, type HospitalId } from "@/features/directory";
+import { Pressable, ScrollView, Text, TextInput, useCSSVariable, View } from "@/tw";
 
 function normalizeSearchText(value: string) {
   return value
@@ -71,34 +71,37 @@ export function DirectoryScreen() {
     );
   }
 
-  return (
-    <ScrollView
-      className="flex-1 bg-pronto-surface"
-      contentContainerClassName="gap-5 px-4 pb-8 pt-3"
-      contentInsetAdjustmentBehavior="automatic"
-      keyboardShouldPersistTaps="handled"
-    >
-      <HospitalSelector
-        hospitals={hospitals}
-        isOpen={isHospitalMenuOpen}
-        onChange={(hospitalId) => {
-          selectHospital(hospitalId);
-          setIsHospitalMenuOpen(false);
-        }}
-        onToggle={() => setIsHospitalMenuOpen((current) => !current)}
-        selectedHospital={selectedHospital}
-      />
+  const handleHospitalChange = (hospitalId: HospitalId) => {
+    selectHospital(hospitalId);
+    setIsHospitalMenuOpen(false);
+  };
 
-      {storageError ? (
+  return (
+    <View className="flex-1 bg-pronto-surface">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-5 px-4 pb-8 pt-3"
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+      >
+        <HospitalSelector
+          hospitals={hospitals}
+          isOpen={false}
+          onChange={handleHospitalChange}
+          onToggle={() => setIsHospitalMenuOpen(true)}
+          selectedHospital={selectedHospital}
+        />
+
+        {storageError ? (
         <View className="flex-row gap-2 rounded-xl border border-pronto-danger/20 bg-pronto-danger-soft px-3.5 py-3">
           <AppSymbol name="info" size={18} tintColor="#b42318" />
           <Text selectable className="min-w-0 flex-1 text-sm leading-5 text-pronto-danger">
             Le preferenze restano attive in questa sessione, ma non è stato possibile salvarle.
           </Text>
         </View>
-      ) : null}
+        ) : null}
 
-      <View className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl border border-pronto-line bg-white px-3.5">
+        <View className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl border border-pronto-line bg-white px-3.5">
         <AppSymbol name="search" size={19} tintColor="#5c7d84" />
         <TextInput
           accessibilityLabel="Cerca nella rubrica"
@@ -111,18 +114,9 @@ export function DirectoryScreen() {
           returnKeyType="search"
           value={query}
         />
-      </View>
-
-      <View className="gap-3">
-        <View className="px-1">
-          <View className="gap-0.5">
-            <Text className="text-lg font-extrabold text-pronto-ink">Rubrica A–Z</Text>
-            <Text selectable className="text-sm text-pronto-secondary">
-              {filteredContacts.length} {filteredContacts.length === 1 ? "contatto" : "contatti"}
-            </Text>
-          </View>
         </View>
 
+        <View className="gap-3">
         {groupedContacts.length > 0 ? (
           groupedContacts.map(({ letter, items }) => (
             <View className="gap-2" key={letter}>
@@ -152,7 +146,29 @@ export function DirectoryScreen() {
             </Text>
           </View>
         )}
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+
+      {isHospitalMenuOpen ? (
+        <View
+          accessibilityViewIsModal
+          className="absolute inset-0 z-50 px-4 pb-3 pt-3"
+        >
+          <Pressable
+            accessibilityLabel="Chiudi l'elenco degli ospedali"
+            accessibilityRole="button"
+            className="absolute inset-0 bg-pronto-ink/10"
+            onPress={() => setIsHospitalMenuOpen(false)}
+          />
+          <HospitalSelector
+            hospitals={hospitals}
+            isOpen
+            onChange={handleHospitalChange}
+            onToggle={() => setIsHospitalMenuOpen(false)}
+            selectedHospital={selectedHospital}
+          />
+        </View>
+      ) : null}
+    </View>
   );
 }

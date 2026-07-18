@@ -160,12 +160,6 @@ export function SettingsScreen() {
           Preferenze
         </Text>
         <SettingRow
-          label="Ospedale predefinito"
-          value="Dalla Home"
-          description="Puoi cambiare l'ospedale dalla selezione in alto nella schermata Home. La scelta viene ricordata tra una sessione e l'altra."
-        />
-        <View className="h-px bg-pronto-line" />
-        <SettingRow
           label="Aspetto"
           value="Chiaro"
           description="Il tema chiaro ad alto contrasto è l'unico disponibile in questa versione."

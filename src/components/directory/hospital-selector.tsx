@@ -1,6 +1,6 @@
 import { AppSymbol } from "@/components/ui/app-symbol";
 import type { Hospital, HospitalId } from "@/features/directory";
-import { Pressable, Text, View } from "@/tw";
+import { Pressable, ScrollView, Text, View } from "@/tw";
 
 type HospitalSelectorProps = {
   hospitals: readonly Hospital[];
@@ -17,8 +17,12 @@ export function HospitalSelector({
   onToggle,
   selectedHospital,
 }: HospitalSelectorProps) {
+  const sortedHospitals = [...hospitals].sort((firstHospital, secondHospital) =>
+    firstHospital.name.localeCompare(secondHospital.name, "it-IT", { sensitivity: "base" }),
+  );
+
   return (
-    <View className="gap-2">
+    <View className={isOpen ? "flex-1 gap-2" : "gap-2"}>
       <Pressable
         accessibilityHint="Apre l'elenco degli ospedali disponibili"
         accessibilityLabel={`Ospedale selezionato: ${selectedHospital.name}`}
@@ -49,43 +53,49 @@ export function HospitalSelector({
       </Pressable>
 
       {isOpen ? (
-        <View className="overflow-hidden rounded-2xl border border-pronto-line bg-white">
-          {hospitals.map((hospital, index) => {
-            const isSelected = hospital.id === selectedHospital.id;
+        <View className="flex-1 overflow-hidden rounded-2xl border border-pronto-line bg-white">
+          <ScrollView
+            className="flex-1"
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+          >
+            {sortedHospitals.map((hospital, index) => {
+              const isSelected = hospital.id === selectedHospital.id;
 
-            return (
-              <Pressable
-                accessibilityLabel={`${hospital.name}, ${hospital.city}`}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
-                className={`min-h-[58px] flex-row items-center gap-3 px-4 py-3 active:bg-pronto-teal-soft ${
-                  index > 0 ? "border-t border-pronto-line" : ""
-                }`}
-                key={hospital.id}
-                onPress={() => onChange(hospital.id)}
-              >
-                <View
-                  className={`h-5 w-5 items-center justify-center rounded-full border ${
-                    isSelected
-                      ? "border-pronto-teal-dark bg-pronto-teal-dark"
-                      : "border-pronto-line bg-white"
+              return (
+                <Pressable
+                  accessibilityLabel={`${hospital.name}, ${hospital.city}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  className={`min-h-[58px] flex-row items-center gap-3 px-4 py-3 active:bg-pronto-teal-soft ${
+                    index > 0 ? "border-t border-pronto-line" : ""
                   }`}
+                  key={hospital.id}
+                  onPress={() => onChange(hospital.id)}
                 >
-                  {isSelected ? (
-                    <Text className="text-xs font-bold text-white">✓</Text>
-                  ) : null}
-                </View>
-                <View className="min-w-0 flex-1">
-                  <Text selectable className="text-sm font-bold text-pronto-ink">
-                    {hospital.name}
-                  </Text>
-                  <Text selectable className="text-xs text-pronto-secondary">
-                    {hospital.city}
-                  </Text>
-                </View>
-              </Pressable>
-            );
-          })}
+                  <View
+                    className={`h-5 w-5 items-center justify-center rounded-full border ${
+                      isSelected
+                        ? "border-pronto-teal-dark bg-pronto-teal-dark"
+                        : "border-pronto-line bg-white"
+                    }`}
+                  >
+                    {isSelected ? (
+                      <Text className="text-xs font-bold text-white">✓</Text>
+                    ) : null}
+                  </View>
+                  <View className="min-w-0 flex-1">
+                    <Text selectable className="text-sm font-bold text-pronto-ink">
+                      {hospital.name}
+                    </Text>
+                    <Text selectable className="text-xs text-pronto-secondary">
+                      {hospital.city}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         </View>
       ) : null}
     </View>

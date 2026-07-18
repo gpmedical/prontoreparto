@@ -103,8 +103,8 @@ export function ContactDetailScreen() {
       contentContainerClassName="grow gap-5 px-4 pb-8 pt-3"
       contentInsetAdjustmentBehavior="automatic"
     >
-      <View className="flex-row items-start gap-3 rounded-2xl border border-pronto-line bg-white p-5">
-        <View className="min-w-0 flex-1 gap-2">
+      <View className="flex-row items-center gap-3 rounded-2xl border border-pronto-line bg-white px-4 py-3">
+        <View className="min-w-0 flex-1 gap-1">
           <Text selectable className="text-[27px] font-extrabold leading-8 text-pronto-ink">
             {contact.name}
           </Text>
@@ -134,11 +134,11 @@ export function ContactDetailScreen() {
 
       <View className="flex-1 items-center justify-center gap-5 rounded-2xl border border-pronto-line bg-white px-5 py-10">
         <View
-          className="flex-row items-center gap-2 rounded-full px-3 py-2"
+          className="flex-row items-center gap-2.5 rounded-full px-5 py-3"
           style={{ backgroundColor: presentation.softColor }}
         >
-          <AppSymbol name={presentation.icon} size={17} tintColor={presentation.color} />
-          <Text className="text-sm font-bold" style={{ color: presentation.color }}>
+          <AppSymbol name={presentation.icon} size={22} tintColor={presentation.color} />
+          <Text className="text-lg font-bold" style={{ color: presentation.color }}>
             {presentation.label}
           </Text>
         </View>
@@ -159,12 +159,6 @@ export function ContactDetailScreen() {
               Il cicalino è utilizzabile soltanto dall'interno dell'ospedale.
             </Text>
           </View>
-        ) : null}
-
-        {contact.type === "email" ? (
-          <Text selectable className="text-center text-sm text-pronto-secondary">
-            Si aprirà l'app email predefinita.
-          </Text>
         ) : null}
       </View>
 

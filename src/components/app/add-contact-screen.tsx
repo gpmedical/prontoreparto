@@ -12,19 +12,13 @@ export function AddContactScreen() {
           </Text>
         </View>
 
-        <View className="gap-2">
-          <Text
-            accessibilityRole="header"
-            selectable
-            className="text-xl font-extrabold text-pronto-ink"
-          >
-            Le segnalazioni non sono ancora attive
-          </Text>
-          <Text selectable className="text-[15px] leading-[22px] text-pronto-secondary">
-            Questa schermata sarà disponibile quando l'app verrà collegata a Supabase. Per
-            ora non raccogliamo e non salviamo alcun dato inserito dagli utenti.
-          </Text>
-        </View>
+        <Text
+          accessibilityRole="header"
+          selectable
+          className="text-xl font-extrabold text-pronto-ink"
+        >
+          Le segnalazioni non sono ancora attive
+        </Text>
       </View>
 
       <View className="gap-5 rounded-2xl border border-pronto-line bg-white p-5">
