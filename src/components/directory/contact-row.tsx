@@ -2,6 +2,7 @@ import { Link } from "expo-router";
 
 import { CONTACT_PRESENTATION } from "@/components/directory/contact-presentation";
 import { AppSymbol } from "@/components/ui/app-symbol";
+import { FavoriteIcon } from "@/components/ui/favorite-icon";
 import type { DirectoryContact } from "@/features/directory";
 import { Pressable, Text, View } from "@/tw";
 
@@ -91,13 +92,7 @@ export function ContactRow({
         </View>
 
         {isFavorite ? (
-          <Text
-            accessibilityElementsHidden
-            className="shrink-0 text-[27px] leading-[27px] text-[#d97706]"
-            importantForAccessibility="no"
-          >
-            ★
-          </Text>
+          <FavoriteIcon selected size={27} tintColor="#d97706" />
         ) : null}
 
         <AppSymbol name="chevronRight" size={15} tintColor="#789095" />

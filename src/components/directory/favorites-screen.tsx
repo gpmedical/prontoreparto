@@ -2,7 +2,7 @@ import { ActivityIndicator } from "react-native";
 
 import { ContactRow } from "@/components/directory/contact-row";
 import { DirectoryLoadError } from "@/components/directory/directory-load-error";
-import { AppSymbol } from "@/components/ui/app-symbol";
+import { FavoriteIcon } from "@/components/ui/favorite-icon";
 import { useDirectory } from "@/features/directory";
 import { ScrollView, Text, View } from "@/tw";
 
@@ -73,7 +73,11 @@ export function FavoritesScreen() {
         ) : (
           <View className="flex-1 items-center justify-center gap-3 px-7 py-10">
             <View className="h-16 w-16 items-center justify-center rounded-full bg-pronto-pager-soft">
-              <AppSymbol name="favoriteOutline" size={31} tintColor="#b45309" />
+              <FavoriteIcon
+                selected={false}
+                size={31}
+                tintColor="#b45309"
+              />
             </View>
             <Text selectable className="text-center text-lg font-bold text-pronto-ink">
               Nessun preferito
