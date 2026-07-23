@@ -5,6 +5,7 @@ import { Modal } from "react-native";
 
 import { AppScreen } from "@/components/app/app-screen";
 import { SettingRow } from "@/components/app/setting-row";
+import { useDirectory } from "@/features/directory";
 import { deleteDirectoryPreferences } from "@/features/directory/directory-storage";
 import { Pressable, Text, View } from "@/tw";
 
@@ -23,6 +24,7 @@ function getInitials(name: string) {
 export function SettingsScreen() {
   const { signOut } = useClerk();
   const { isLoaded, user } = useUser();
+  const { deleteAllFavorites } = useDirectory();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -90,6 +92,7 @@ export function SettingsScreen() {
     setDeleteAccountError(null);
 
     try {
+      await deleteAllFavorites();
       await deleteCurrentUser();
 
       try {
@@ -250,8 +253,8 @@ export function SettingsScreen() {
                 Eliminare il tuo account?
               </Text>
               <Text selectable className="text-sm leading-5 text-pronto-secondary">
-                Questa azione è definitiva. Il tuo account, i preferiti e le preferenze salvate
-                su questo dispositivo verranno eliminati.
+                Questa azione è definitiva. Il tuo account, i preferiti sincronizzati e le
+                preferenze salvate su questo dispositivo verranno eliminati.
               </Text>
             </View>
 

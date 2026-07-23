@@ -43,7 +43,7 @@ export function FavoritesScreen() {
       <View className="gap-1 px-1">
         <Text className="text-lg font-extrabold text-pronto-ink">I tuoi contatti rapidi</Text>
         <Text selectable className="text-sm leading-5 text-pronto-secondary">
-          I preferiti sono personali e restano salvati su questo dispositivo.
+          I preferiti sono personali e sincronizzati su tutti i tuoi dispositivi.
         </Text>
       </View>
 

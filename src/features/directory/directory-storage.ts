@@ -65,11 +65,32 @@ function isDirectoryPreferences(value: unknown): value is DirectoryPreferences {
   const preferences = value as Record<string, unknown>;
 
   return (
-    preferences.version === 1 &&
-    typeof preferences.selectedHospitalId === "string" &&
-    Array.isArray(preferences.favoriteContactIds) &&
-    preferences.favoriteContactIds.every((contactId) => typeof contactId === "string")
+    preferences.version === 2 &&
+    typeof preferences.selectedHospitalId === "string"
   );
+}
+
+function parseDirectoryPreferences(value: unknown): DirectoryPreferences | null {
+  if (isDirectoryPreferences(value)) {
+    return value;
+  }
+
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  const legacyPreferences = value as Record<string, unknown>;
+  if (
+    legacyPreferences.version !== 1 ||
+    typeof legacyPreferences.selectedHospitalId !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    version: 2,
+    selectedHospitalId: legacyPreferences.selectedHospitalId,
+  };
 }
 
 export async function loadDirectoryPreferences(
@@ -83,7 +104,7 @@ export async function loadDirectoryPreferences(
 
   try {
     const parsedValue: unknown = JSON.parse(storedValue);
-    return isDirectoryPreferences(parsedValue) ? parsedValue : null;
+    return parseDirectoryPreferences(parsedValue);
   } catch {
     return null;
   }

@@ -26,7 +26,6 @@ export function DirectoryScreen() {
     selectHospital,
     selectedContacts,
     selectedHospital,
-    storageError,
   } = useDirectory();
   const placeholderTextColor = useCSSVariable("--color-pronto-placeholder");
   const [isHospitalMenuOpen, setIsHospitalMenuOpen] = useState(false);
@@ -91,15 +90,6 @@ export function DirectoryScreen() {
           onToggle={() => setIsHospitalMenuOpen(true)}
           selectedHospital={selectedHospital}
         />
-
-        {storageError ? (
-        <View className="flex-row gap-2 rounded-xl border border-pronto-danger/20 bg-pronto-danger-soft px-3.5 py-3">
-          <AppSymbol name="info" size={18} tintColor="#b42318" />
-          <Text selectable className="min-w-0 flex-1 text-sm leading-5 text-pronto-danger">
-            Le preferenze restano attive in questa sessione, ma non è stato possibile salvarle.
-          </Text>
-        </View>
-        ) : null}
 
         <View className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl border border-pronto-line bg-white px-3.5">
         <AppSymbol name="search" size={19} tintColor="#5c7d84" />

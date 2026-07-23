@@ -35,9 +35,6 @@ export function HospitalSelector({
           <AppSymbol name="hospital" size={23} tintColor="#006978" />
         </View>
         <View className="min-w-0 flex-1 gap-0.5">
-          <Text className="text-[11px] font-bold uppercase tracking-wider text-pronto-placeholder">
-            Ospedale selezionato
-          </Text>
           <Text selectable className="text-base font-bold text-pronto-ink" numberOfLines={2}>
             {selectedHospital.name}
           </Text>

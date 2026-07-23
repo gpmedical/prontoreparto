@@ -17,6 +17,12 @@ import {
   loadDirectoryPreferences,
   saveDirectoryPreferences,
 } from "./directory-storage";
+import {
+  deleteAllFavoriteContacts,
+  deleteFavoriteContact,
+  fetchFavoriteContactIds,
+  saveFavoriteContact,
+} from "./favorites-api";
 import { getContactsForHospital } from "./helpers";
 import type {
   ContactId,
@@ -41,7 +47,7 @@ export interface DirectoryContextValue {
   readonly favoriteContacts: readonly DirectoryContact[];
   readonly isHydrated: boolean;
   readonly directoryError: string | null;
-  readonly storageError: string | null;
+  readonly deleteAllFavorites: () => Promise<void>;
   readonly reloadDirectory: () => void;
   readonly selectHospital: (hospitalId: HospitalId) => void;
   readonly toggleFavorite: (contactId: ContactId) => void;
@@ -59,6 +65,7 @@ const DirectoryContext = createContext<DirectoryContextValue | null>(null);
 
 function normalizePreferences(
   preferences: DirectoryPreferences | null,
+  favoriteContactIds: readonly ContactId[],
   hospitals: readonly Hospital[],
   contactById: ReadonlyMap<ContactId, DirectoryContact>,
 ): DirectorySelectionState {
@@ -68,17 +75,16 @@ function normalizePreferences(
     preferences && hospitalIds.has(preferences.selectedHospitalId)
       ? preferences.selectedHospitalId
       : defaultHospitalId;
-  const favoriteContactIds = preferences
-    ? Array.from(
-        new Set(
-          preferences.favoriteContactIds.filter((contactId) =>
-            contactById.has(contactId),
-          ),
-        ),
-      )
-    : [];
+  const validFavoriteContactIds = Array.from(
+    new Set(
+      favoriteContactIds.filter((contactId) => contactById.has(contactId)),
+    ),
+  );
 
-  return { selectedHospitalId, favoriteContactIds };
+  return {
+    selectedHospitalId,
+    favoriteContactIds: validFavoriteContactIds,
+  };
 }
 
 function toPersistedPreferences(
@@ -89,9 +95,8 @@ function toPersistedPreferences(
   }
 
   return {
-    version: 1,
+    version: 2,
     selectedHospitalId: selection.selectedHospitalId,
-    favoriteContactIds: selection.favoriteContactIds,
   };
 }
 
@@ -104,13 +109,13 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
     useState<DirectorySelectionState>(EMPTY_SELECTION);
   const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const [directoryError, setDirectoryError] = useState<string | null>(null);
-  const [storageError, setStorageError] = useState<string | null>(null);
   const [reloadVersion, setReloadVersion] = useState(0);
   const activeUserIdRef = useRef<string | null>(authenticatedUserId);
   const getTokenRef = useRef(getToken);
   const hydratedUserIdRef = useRef<string | null>(null);
   const selectionRef = useRef<DirectorySelectionState>(EMPTY_SELECTION);
   const hydrationRequestRef = useRef(0);
+  const favoriteWriteQueueRef = useRef<Promise<void>>(Promise.resolve());
   const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   activeUserIdRef.current = authenticatedUserId;
@@ -140,7 +145,6 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
     setHydratedUserId(null);
     setSelection(EMPTY_SELECTION);
     setDirectoryError(null);
-    setStorageError(null);
 
     if (!authenticatedUserId) {
       return () => {
@@ -155,16 +159,20 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
       };
     }
 
-    const preferencesPromise = loadDirectoryPreferences(authenticatedUserId).then(
-      (preferences) => ({ preferences, failed: false as const }),
-      () => ({ preferences: null, failed: true as const }),
-    );
+    const preferencesPromise = loadDirectoryPreferences(
+      authenticatedUserId,
+    ).catch(() => null);
+    const favoritesPromise = fetchFavoriteContactIds(
+      supabaseClient,
+      authenticatedUserId,
+    ).catch(() => [] as readonly ContactId[]);
 
     void Promise.all([
       fetchDirectoryData(supabaseClient),
       preferencesPromise,
+      favoritesPromise,
     ]).then(
-      ([directoryData, preferenceResult]) => {
+      ([directoryData, preferences, favoriteContactIds]) => {
         if (
           hydrationRequestRef.current !== requestId ||
           activeUserIdRef.current !== authenticatedUserId
@@ -178,7 +186,8 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
           ),
         );
         const nextSelection = normalizePreferences(
-          preferenceResult.preferences,
+          preferences,
+          favoriteContactIds,
           directoryData.hospitals,
           contactById,
         );
@@ -189,11 +198,6 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
         setAllContacts(directoryData.contacts);
         setSelection(nextSelection);
         setHydratedUserId(authenticatedUserId);
-        setStorageError(
-          preferenceResult.failed
-            ? "Non e stato possibile caricare le preferenze locali."
-            : null,
-        );
       },
       () => {
         if (
@@ -238,20 +242,7 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
       writeQueueRef.current = writeQueueRef.current
         .catch(() => undefined)
         .then(() => saveDirectoryPreferences(ownerUserId, preferences))
-        .then(
-          () => {
-            if (activeUserIdRef.current === ownerUserId) {
-              setStorageError(null);
-            }
-          },
-          () => {
-            if (activeUserIdRef.current === ownerUserId) {
-              setStorageError(
-                "Non e stato possibile salvare le preferenze locali.",
-              );
-            }
-          },
-        );
+        .catch(() => undefined);
     },
     [],
   );
@@ -261,14 +252,14 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
       const ownerUserId = activeUserIdRef.current;
 
       if (!ownerUserId || hydratedUserIdRef.current !== ownerUserId) {
-        return;
+        return null;
       }
 
       selectionRef.current = nextSelection;
       setSelection(nextSelection);
-      enqueuePreferenceWrite(ownerUserId, nextSelection);
+      return ownerUserId;
     },
-    [enqueuePreferenceWrite],
+    [],
   );
 
   const selectHospital = useCallback(
@@ -282,9 +273,68 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
         return;
       }
 
-      commitSelection({ ...currentSelection, selectedHospitalId: hospitalId });
+      const nextSelection = {
+        ...currentSelection,
+        selectedHospitalId: hospitalId,
+      };
+      const ownerUserId = commitSelection(nextSelection);
+      if (ownerUserId) {
+        enqueuePreferenceWrite(ownerUserId, nextSelection);
+      }
     },
-    [commitSelection, hospitalById],
+    [commitSelection, enqueuePreferenceWrite, hospitalById],
+  );
+
+  const enqueueFavoriteWrite = useCallback(
+    (
+      ownerUserId: string,
+      contactId: ContactId,
+      shouldBeFavorite: boolean,
+    ) => {
+      const client = supabaseClient;
+
+      favoriteWriteQueueRef.current = favoriteWriteQueueRef.current
+        .catch(() => undefined)
+        .then(async () => {
+          if (!client) {
+            throw new Error("Supabase is not available.");
+          }
+
+          if (shouldBeFavorite) {
+            await saveFavoriteContact(client, ownerUserId, contactId);
+          } else {
+            await deleteFavoriteContact(client, ownerUserId, contactId);
+          }
+        })
+        .then(undefined, () => {
+            if (
+              activeUserIdRef.current !== ownerUserId ||
+              hydratedUserIdRef.current !== ownerUserId
+            ) {
+              return;
+            }
+
+            const currentSelection = selectionRef.current;
+            const isCurrentlyFavorite =
+              currentSelection.favoriteContactIds.includes(contactId);
+
+            if (isCurrentlyFavorite === shouldBeFavorite) {
+              const favoriteContactIds = shouldBeFavorite
+                ? currentSelection.favoriteContactIds.filter(
+                    (favoriteId) => favoriteId !== contactId,
+                  )
+                : [...currentSelection.favoriteContactIds, contactId];
+              const rolledBackSelection = {
+                ...currentSelection,
+                favoriteContactIds,
+              };
+
+              selectionRef.current = rolledBackSelection;
+              setSelection(rolledBackSelection);
+            }
+          });
+    },
+    [supabaseClient],
   );
 
   const toggleFavorite = useCallback(
@@ -299,11 +349,44 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
       const favoriteContactIds = isAlreadyFavorite
         ? currentSelection.favoriteContactIds.filter((id) => id !== contactId)
         : [...currentSelection.favoriteContactIds, contactId];
+      const shouldBeFavorite = !isAlreadyFavorite;
+      const ownerUserId = commitSelection({
+        ...currentSelection,
+        favoriteContactIds,
+      });
 
-      commitSelection({ ...currentSelection, favoriteContactIds });
+      if (ownerUserId) {
+        enqueueFavoriteWrite(ownerUserId, contactId, shouldBeFavorite);
+      }
     },
-    [commitSelection, contactById],
+    [commitSelection, contactById, enqueueFavoriteWrite],
   );
+
+  const deleteAllFavorites = useCallback(async () => {
+    const ownerUserId = activeUserIdRef.current;
+    const client = supabaseClient;
+
+    if (
+      !ownerUserId ||
+      !client ||
+      hydratedUserIdRef.current !== ownerUserId
+    ) {
+      throw new Error("I preferiti non sono pronti per la cancellazione.");
+    }
+
+    await favoriteWriteQueueRef.current.catch(() => undefined);
+    await deleteAllFavoriteContacts(client, ownerUserId);
+
+    if (activeUserIdRef.current === ownerUserId) {
+      const nextSelection = {
+        ...selectionRef.current,
+        favoriteContactIds: [],
+      };
+
+      selectionRef.current = nextSelection;
+      setSelection(nextSelection);
+    }
+  }, [supabaseClient]);
 
   const reloadDirectory = useCallback(() => {
     setReloadVersion((currentVersion) => currentVersion + 1);
@@ -353,7 +436,6 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
     },
     [contactById, hospitalById],
   );
-
   const value = useMemo<DirectoryContextValue>(
     () => ({
       hospitals,
@@ -365,7 +447,7 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
       favoriteContacts,
       isHydrated,
       directoryError,
-      storageError,
+      deleteAllFavorites,
       reloadDirectory,
       selectHospital,
       toggleFavorite,
@@ -375,6 +457,7 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
     }),
     [
       allContacts,
+      deleteAllFavorites,
       directoryError,
       favoriteContacts,
       getContactById,
@@ -386,7 +469,6 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
       selectHospital,
       selectedContacts,
       selectedHospital,
-      storageError,
       toggleFavorite,
       visibleSelection.favoriteContactIds,
       visibleSelection.selectedHospitalId,

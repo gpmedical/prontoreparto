@@ -54,9 +54,8 @@ export interface EmailContact extends DirectoryContactBase {
 export type DirectoryContact = FissoContact | CicalinoContact | EmailContact;
 
 export interface DirectoryPreferences {
-  readonly version: 1;
+  readonly version: 2;
   readonly selectedHospitalId: HospitalId;
-  readonly favoriteContactIds: readonly ContactId[];
 }
 
 export interface DirectorySection {
