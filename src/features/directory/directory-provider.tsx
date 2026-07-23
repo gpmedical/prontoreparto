@@ -107,12 +107,16 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
   const [storageError, setStorageError] = useState<string | null>(null);
   const [reloadVersion, setReloadVersion] = useState(0);
   const activeUserIdRef = useRef<string | null>(authenticatedUserId);
+  const getTokenRef = useRef(getToken);
   const hydratedUserIdRef = useRef<string | null>(null);
   const selectionRef = useRef<DirectorySelectionState>(EMPTY_SELECTION);
   const hydrationRequestRef = useRef(0);
   const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   activeUserIdRef.current = authenticatedUserId;
+  getTokenRef.current = getToken;
+
+  const getAccessToken = useCallback(() => getTokenRef.current(), []);
 
   const supabaseClient = useMemo(() => {
     if (!authenticatedUserId) {
@@ -120,11 +124,11 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
     }
 
     try {
-      return createClerkSupabaseClient(() => getToken());
+      return createClerkSupabaseClient(getAccessToken);
     } catch {
       return null;
     }
-  }, [authenticatedUserId, getToken]);
+  }, [authenticatedUserId, getAccessToken]);
 
   useEffect(() => {
     const requestId = ++hydrationRequestRef.current;

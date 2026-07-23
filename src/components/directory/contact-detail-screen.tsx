@@ -110,9 +110,13 @@ export function ContactDetailScreen() {
       contentContainerClassName="grow gap-5 px-4 pb-8 pt-3"
       contentInsetAdjustmentBehavior="automatic"
     >
-      <View className="flex-row items-center gap-3 rounded-2xl border border-pronto-line bg-white px-4 py-3">
+      <View className="flex-row items-start gap-3 rounded-2xl border border-pronto-line bg-white px-4 py-3">
         <View className="min-w-0 flex-1 gap-1">
-          <Text selectable className="text-[27px] font-extrabold leading-8 text-pronto-ink">
+          <Text
+            selectable
+            className="break-normal text-xl font-extrabold leading-7 text-pronto-ink"
+            textBreakStrategy="highQuality"
+          >
             {contact.name}
           </Text>
           <Text selectable className="text-sm leading-5 text-pronto-secondary">
@@ -124,7 +128,7 @@ export function ContactDetailScreen() {
           accessibilityLabel={favorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
           accessibilityRole="button"
           accessibilityState={{ selected: favorite }}
-          className={`h-12 w-12 items-center justify-center rounded-full border active:bg-pronto-pager-soft ${
+          className={`h-12 w-12 shrink-0 items-center justify-center rounded-full border active:bg-pronto-pager-soft ${
             favorite
               ? "border-pronto-pager bg-pronto-pager-soft"
               : "border-pronto-line bg-white"
