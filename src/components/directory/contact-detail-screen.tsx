@@ -1,7 +1,7 @@
 import * as Linking from "expo-linking";
 import { Stack, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Alert } from "react-native";
+import { ActivityIndicator, Alert, type LayoutChangeEvent } from "react-native";
 import Animated, { FadeInRight, FadeOutRight } from "react-native-reanimated";
 
 import { CONTACT_PRESENTATION } from "@/components/directory/contact-presentation";
@@ -18,6 +18,12 @@ const webDetailEntering =
   process.env.EXPO_OS === "web" ? FadeInRight.duration(220) : undefined;
 const webDetailExiting =
   process.env.EXPO_OS === "web" ? FadeOutRight.duration(160) : undefined;
+const contactTitleBaseFontSize = 20;
+const contactTitleMinimumFontSize = 16;
+
+function getContactTitleLineHeight(fontSize: number) {
+  return Math.round(fontSize * 1.4);
+}
 
 export function ContactDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,8 +40,17 @@ export function ContactDetailScreen() {
   } = useDirectory();
   const [isOpeningAction, setIsOpeningAction] = useState(false);
   const contactId = id as ContactId;
+  const [contactTitleSizing, setContactTitleSizing] = useState({
+    contactId,
+    fontSize: contactTitleBaseFontSize,
+  });
   const contact = getContactById(contactId);
   const hospital = getHospitalByContactId(contactId);
+  const contactTitleFontSize =
+    contactTitleSizing.contactId === contactId
+      ? contactTitleSizing.fontSize
+      : contactTitleBaseFontSize;
+  const contactTitleLineHeight = getContactTitleLineHeight(contactTitleFontSize);
 
   if (directoryError) {
     return <DirectoryLoadError onRetry={reloadDirectory} />;
@@ -121,6 +136,23 @@ export function ContactDetailScreen() {
     router.replace(pathname.startsWith("/preferiti") ? "/preferiti" : "/home");
   }
 
+  function handleContactTitleLayout(event: LayoutChangeEvent) {
+    const titleHeight = event.nativeEvent.layout.height;
+    const fitsWithinTwoLines = titleHeight <= contactTitleLineHeight * 2 + 1;
+
+    if (fitsWithinTwoLines || contactTitleFontSize <= contactTitleMinimumFontSize) {
+      return;
+    }
+
+    setContactTitleSizing({
+      contactId,
+      fontSize: Math.max(
+        contactTitleMinimumFontSize,
+        contactTitleFontSize - 1,
+      ),
+    });
+  }
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -147,8 +179,13 @@ export function ContactDetailScreen() {
           <View className="min-w-0 flex-1 flex-row items-start gap-3 rounded-2xl border border-pronto-line bg-white px-4 py-3">
             <View className="min-w-0 flex-1 items-center gap-1">
               <Text
+                onLayout={handleContactTitleLayout}
                 selectable
-                className="break-normal text-center text-xl font-bold leading-7 text-pronto-ink"
+                className="break-normal text-center font-bold text-pronto-ink"
+                style={{
+                  fontSize: contactTitleFontSize,
+                  lineHeight: contactTitleLineHeight,
+                }}
                 textBreakStrategy="highQuality"
               >
                 {contact.name}
@@ -173,14 +210,7 @@ export function ContactDetailScreen() {
               onPress={() => toggleFavorite(contact.id)}
             >
               {favorite ? (
-                <Text
-                  accessibilityElementsHidden
-                  className="w-[30px] text-center text-[30px] leading-[30px] text-pronto-pager"
-                  importantForAccessibility="no"
-                  style={{ transform: [{ translateY: -2 }] }}
-                >
-                  ★
-                </Text>
+                <AppSymbol name="favorite" size={28} tintColor="#b45309" />
               ) : (
                 <AppSymbol name="favoriteOutline" size={25} tintColor="#5c7d84" />
               )}
@@ -223,13 +253,10 @@ export function ContactDetailScreen() {
           accessibilityLabel={contact.type === "email" ? "Scrivi un'email" : "Chiama il contatto"}
           accessibilityRole="button"
           accessibilityState={{ busy: isOpeningAction, disabled: isOpeningAction }}
-          className="min-h-[56px] flex-row items-center justify-center gap-2.5 rounded-2xl bg-pronto-teal-dark px-5 active:bg-pronto-ink disabled:opacity-60"
+          className="min-h-[56px] flex-row items-center justify-center rounded-2xl bg-pronto-teal-dark px-5 active:bg-pronto-ink disabled:opacity-60"
           disabled={isOpeningAction}
           onPress={handleContactAction}
         >
-          {isEmailAction ? (
-            <AppSymbol name="email" size={21} tintColor="#ffffff" />
-          ) : null}
           <Text className="text-base font-bold text-white">
             {isOpeningAction
               ? "Apertura…"
