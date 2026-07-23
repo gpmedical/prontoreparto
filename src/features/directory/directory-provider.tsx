@@ -10,11 +10,9 @@ import {
   useState,
 } from "react";
 
-import {
-  DIRECTORY_CONTACTS,
-  DEFAULT_HOSPITAL_ID,
-  HOSPITALS,
-} from "./mock-data";
+import { createClerkSupabaseClient } from "@/features/supabase/client";
+
+import { fetchDirectoryData } from "./directory-api";
 import {
   loadDirectoryPreferences,
   saveDirectoryPreferences,
@@ -29,20 +27,22 @@ import type {
 } from "./types";
 
 interface DirectorySelectionState {
-  readonly selectedHospitalId: HospitalId;
+  readonly selectedHospitalId: HospitalId | null;
   readonly favoriteContactIds: readonly ContactId[];
 }
 
 export interface DirectoryContextValue {
   readonly hospitals: readonly Hospital[];
   readonly allContacts: readonly DirectoryContact[];
-  readonly selectedHospital: Hospital;
-  readonly selectedHospitalId: HospitalId;
+  readonly selectedHospital: Hospital | null;
+  readonly selectedHospitalId: HospitalId | null;
   readonly selectedContacts: readonly DirectoryContact[];
   readonly favoriteContactIds: readonly ContactId[];
   readonly favoriteContacts: readonly DirectoryContact[];
   readonly isHydrated: boolean;
+  readonly directoryError: string | null;
   readonly storageError: string | null;
+  readonly reloadDirectory: () => void;
   readonly selectHospital: (hospitalId: HospitalId) => void;
   readonly toggleFavorite: (contactId: ContactId) => void;
   readonly isFavorite: (contactId: ContactId) => boolean;
@@ -51,43 +51,43 @@ export interface DirectoryContextValue {
 }
 
 const EMPTY_SELECTION: DirectorySelectionState = {
-  selectedHospitalId: DEFAULT_HOSPITAL_ID,
+  selectedHospitalId: null,
   favoriteContactIds: [],
 };
-
-const HOSPITAL_BY_ID = new Map(
-  HOSPITALS.map((hospital) => [hospital.id as HospitalId, hospital] as const),
-);
-const CONTACT_BY_ID = new Map(
-  DIRECTORY_CONTACTS.map((contact) => [contact.id as ContactId, contact] as const),
-);
 
 const DirectoryContext = createContext<DirectoryContextValue | null>(null);
 
 function normalizePreferences(
   preferences: DirectoryPreferences | null,
+  hospitals: readonly Hospital[],
+  contactById: ReadonlyMap<ContactId, DirectoryContact>,
 ): DirectorySelectionState {
-  if (!preferences) {
-    return EMPTY_SELECTION;
-  }
-
-  const selectedHospitalId = HOSPITAL_BY_ID.has(preferences.selectedHospitalId)
-    ? preferences.selectedHospitalId
-    : DEFAULT_HOSPITAL_ID;
-  const favoriteContactIds = Array.from(
-    new Set(
-      preferences.favoriteContactIds.filter((contactId) =>
-        CONTACT_BY_ID.has(contactId),
-      ),
-    ),
-  );
+  const hospitalIds = new Set(hospitals.map((hospital) => hospital.id));
+  const defaultHospitalId = hospitals[0]?.id ?? null;
+  const selectedHospitalId =
+    preferences && hospitalIds.has(preferences.selectedHospitalId)
+      ? preferences.selectedHospitalId
+      : defaultHospitalId;
+  const favoriteContactIds = preferences
+    ? Array.from(
+        new Set(
+          preferences.favoriteContactIds.filter((contactId) =>
+            contactById.has(contactId),
+          ),
+        ),
+      )
+    : [];
 
   return { selectedHospitalId, favoriteContactIds };
 }
 
 function toPersistedPreferences(
   selection: DirectorySelectionState,
-): DirectoryPreferences {
+): DirectoryPreferences | null {
+  if (!selection.selectedHospitalId) {
+    return null;
+  }
+
   return {
     version: 1,
     selectedHospitalId: selection.selectedHospitalId,
@@ -96,12 +96,16 @@ function toPersistedPreferences(
 }
 
 export function DirectoryProvider({ children }: PropsWithChildren) {
-  const { isLoaded, isSignedIn, userId } = useAuth();
+  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
   const authenticatedUserId = isLoaded && isSignedIn ? userId : null;
+  const [hospitals, setHospitals] = useState<readonly Hospital[]>([]);
+  const [allContacts, setAllContacts] = useState<readonly DirectoryContact[]>([]);
   const [selection, setSelection] =
     useState<DirectorySelectionState>(EMPTY_SELECTION);
   const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
+  const [directoryError, setDirectoryError] = useState<string | null>(null);
   const [storageError, setStorageError] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
   const activeUserIdRef = useRef<string | null>(authenticatedUserId);
   const hydratedUserIdRef = useRef<string | null>(null);
   const selectionRef = useRef<DirectorySelectionState>(EMPTY_SELECTION);
@@ -110,13 +114,28 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
 
   activeUserIdRef.current = authenticatedUserId;
 
+  const supabaseClient = useMemo(() => {
+    if (!authenticatedUserId) {
+      return null;
+    }
+
+    try {
+      return createClerkSupabaseClient(() => getToken());
+    } catch {
+      return null;
+    }
+  }, [authenticatedUserId, getToken]);
+
   useEffect(() => {
     const requestId = ++hydrationRequestRef.current;
 
     hydratedUserIdRef.current = null;
     selectionRef.current = EMPTY_SELECTION;
+    setHospitals([]);
+    setAllContacts([]);
     setHydratedUserId(null);
     setSelection(EMPTY_SELECTION);
+    setDirectoryError(null);
     setStorageError(null);
 
     if (!authenticatedUserId) {
@@ -125,8 +144,23 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
       };
     }
 
-    void loadDirectoryPreferences(authenticatedUserId)
-      .then((preferences) => {
+    if (!supabaseClient) {
+      setDirectoryError("Configurazione Supabase non disponibile.");
+      return () => {
+        hydrationRequestRef.current += 1;
+      };
+    }
+
+    const preferencesPromise = loadDirectoryPreferences(authenticatedUserId).then(
+      (preferences) => ({ preferences, failed: false as const }),
+      () => ({ preferences: null, failed: true as const }),
+    );
+
+    void Promise.all([
+      fetchDirectoryData(supabaseClient),
+      preferencesPromise,
+    ]).then(
+      ([directoryData, preferenceResult]) => {
         if (
           hydrationRequestRef.current !== requestId ||
           activeUserIdRef.current !== authenticatedUserId
@@ -134,13 +168,30 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
           return;
         }
 
-        const nextSelection = normalizePreferences(preferences);
+        const contactById = new Map(
+          directoryData.contacts.map(
+            (contact) => [contact.id, contact] as const,
+          ),
+        );
+        const nextSelection = normalizePreferences(
+          preferenceResult.preferences,
+          directoryData.hospitals,
+          contactById,
+        );
+
         selectionRef.current = nextSelection;
         hydratedUserIdRef.current = authenticatedUserId;
+        setHospitals(directoryData.hospitals);
+        setAllContacts(directoryData.contacts);
         setSelection(nextSelection);
         setHydratedUserId(authenticatedUserId);
-      })
-      .catch(() => {
+        setStorageError(
+          preferenceResult.failed
+            ? "Non e stato possibile caricare le preferenze locali."
+            : null,
+        );
+      },
+      () => {
         if (
           hydrationRequestRef.current !== requestId ||
           activeUserIdRef.current !== authenticatedUserId
@@ -148,26 +199,41 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
           return;
         }
 
-        hydratedUserIdRef.current = authenticatedUserId;
-        setHydratedUserId(authenticatedUserId);
-        setStorageError("Non è stato possibile caricare le preferenze locali.");
-      });
+        setDirectoryError("Non e stato possibile caricare la rubrica.");
+      },
+    );
 
     return () => {
       hydrationRequestRef.current += 1;
     };
-  }, [authenticatedUserId]);
+  }, [authenticatedUserId, reloadVersion, supabaseClient]);
+
+  const hospitalById = useMemo(
+    () =>
+      new Map(
+        hospitals.map((hospital) => [hospital.id, hospital] as const),
+      ),
+    [hospitals],
+  );
+  const contactById = useMemo(
+    () =>
+      new Map(
+        allContacts.map((contact) => [contact.id, contact] as const),
+      ),
+    [allContacts],
+  );
 
   const enqueuePreferenceWrite = useCallback(
     (ownerUserId: string, nextSelection: DirectorySelectionState) => {
+      const preferences = toPersistedPreferences(nextSelection);
+
+      if (!preferences) {
+        return;
+      }
+
       writeQueueRef.current = writeQueueRef.current
         .catch(() => undefined)
-        .then(() =>
-          saveDirectoryPreferences(
-            ownerUserId,
-            toPersistedPreferences(nextSelection),
-          ),
-        )
+        .then(() => saveDirectoryPreferences(ownerUserId, preferences))
         .then(
           () => {
             if (activeUserIdRef.current === ownerUserId) {
@@ -177,7 +243,7 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
           () => {
             if (activeUserIdRef.current === ownerUserId) {
               setStorageError(
-                "Non è stato possibile salvare le preferenze locali.",
+                "Non e stato possibile salvare le preferenze locali.",
               );
             }
           },
@@ -203,7 +269,7 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
 
   const selectHospital = useCallback(
     (hospitalId: HospitalId) => {
-      if (!HOSPITAL_BY_ID.has(hospitalId)) {
+      if (!hospitalById.has(hospitalId)) {
         return;
       }
 
@@ -214,12 +280,12 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
 
       commitSelection({ ...currentSelection, selectedHospitalId: hospitalId });
     },
-    [commitSelection],
+    [commitSelection, hospitalById],
   );
 
   const toggleFavorite = useCallback(
     (contactId: ContactId) => {
-      if (!CONTACT_BY_ID.has(contactId)) {
+      if (!contactById.has(contactId)) {
         return;
       }
 
@@ -232,31 +298,39 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
 
       commitSelection({ ...currentSelection, favoriteContactIds });
     },
-    [commitSelection],
+    [commitSelection, contactById],
   );
+
+  const reloadDirectory = useCallback(() => {
+    setReloadVersion((currentVersion) => currentVersion + 1);
+  }, []);
 
   const isHydrated = Boolean(
-    authenticatedUserId && hydratedUserId === authenticatedUserId,
+    authenticatedUserId &&
+      hydratedUserId === authenticatedUserId &&
+      !directoryError,
   );
   const visibleSelection = isHydrated ? selection : EMPTY_SELECTION;
-
-  const selectedHospital =
-    HOSPITAL_BY_ID.get(visibleSelection.selectedHospitalId) ?? HOSPITALS[0];
+  const selectedHospital = visibleSelection.selectedHospitalId
+    ? (hospitalById.get(visibleSelection.selectedHospitalId) ?? null)
+    : null;
   const selectedContacts = useMemo(
     () =>
-      getContactsForHospital(
-        DIRECTORY_CONTACTS,
-        visibleSelection.selectedHospitalId,
-      ),
-    [visibleSelection.selectedHospitalId],
+      visibleSelection.selectedHospitalId
+        ? getContactsForHospital(
+            allContacts,
+            visibleSelection.selectedHospitalId,
+          )
+        : [],
+    [allContacts, visibleSelection.selectedHospitalId],
   );
   const favoriteContacts = useMemo(
     () =>
       visibleSelection.favoriteContactIds.flatMap((contactId) => {
-        const contact = CONTACT_BY_ID.get(contactId);
+        const contact = contactById.get(contactId);
         return contact ? [contact] : [];
       }),
-    [visibleSelection.favoriteContactIds],
+    [contactById, visibleSelection.favoriteContactIds],
   );
 
   const isFavorite = useCallback(
@@ -265,25 +339,30 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
     [visibleSelection.favoriteContactIds],
   );
   const getContactById = useCallback(
-    (contactId: ContactId) => CONTACT_BY_ID.get(contactId),
-    [],
+    (contactId: ContactId) => contactById.get(contactId),
+    [contactById],
   );
-  const getHospitalByContactId = useCallback((contactId: ContactId) => {
-    const contact = CONTACT_BY_ID.get(contactId);
-    return contact ? HOSPITAL_BY_ID.get(contact.hospitalId) : undefined;
-  }, []);
+  const getHospitalByContactId = useCallback(
+    (contactId: ContactId) => {
+      const contact = contactById.get(contactId);
+      return contact ? hospitalById.get(contact.hospitalId) : undefined;
+    },
+    [contactById, hospitalById],
+  );
 
   const value = useMemo<DirectoryContextValue>(
     () => ({
-      hospitals: HOSPITALS,
-      allContacts: DIRECTORY_CONTACTS,
+      hospitals,
+      allContacts,
       selectedHospital,
       selectedHospitalId: visibleSelection.selectedHospitalId,
       selectedContacts,
       favoriteContactIds: visibleSelection.favoriteContactIds,
       favoriteContacts,
       isHydrated,
+      directoryError,
       storageError,
+      reloadDirectory,
       selectHospital,
       toggleFavorite,
       isFavorite,
@@ -291,11 +370,15 @@ export function DirectoryProvider({ children }: PropsWithChildren) {
       getHospitalByContactId,
     }),
     [
+      allContacts,
+      directoryError,
       favoriteContacts,
       getContactById,
       getHospitalByContactId,
+      hospitals,
       isFavorite,
       isHydrated,
+      reloadDirectory,
       selectHospital,
       selectedContacts,
       selectedHospital,

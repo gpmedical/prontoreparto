@@ -176,8 +176,8 @@ export function SettingsScreen() {
         </Text>
         <SettingRow
           label="Rubrica"
-          value="Dati demo"
-          description="I contatti sono locali e di esempio finché la connessione a Supabase non sarà attiva."
+          value="Supabase"
+          description="I contatti attivi vengono caricati da Supabase e sono disponibili solo agli utenti autenticati."
         />
         <View className="h-px bg-pronto-line" />
         <SettingRow

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import Animated, { FadeInDown, ReduceMotion } from "react-native-reanimated";
 
+import { DirectoryLoadError } from "@/components/directory/directory-load-error";
 import { ContactRow } from "@/components/directory/contact-row";
 import { HospitalSelector } from "@/components/directory/hospital-selector";
 import { AppSymbol } from "@/components/ui/app-symbol";
@@ -17,9 +18,11 @@ function normalizeSearchText(value: string) {
 
 export function DirectoryScreen() {
   const {
+    directoryError,
     hospitals,
     isFavorite,
     isHydrated,
+    reloadDirectory,
     selectHospital,
     selectedContacts,
     selectedHospital,
@@ -43,6 +46,10 @@ export function DirectoryScreen() {
       firstContact.name.localeCompare(secondContact.name, "it-IT", { sensitivity: "base" }),
     );
   }, [query, selectedContacts]);
+
+  if (directoryError) {
+    return <DirectoryLoadError onRetry={reloadDirectory} />;
+  }
 
   if (!isHydrated || !selectedHospital) {
     return (

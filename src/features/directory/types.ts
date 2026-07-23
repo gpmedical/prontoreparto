@@ -23,7 +23,7 @@ export interface Hospital {
   readonly name: string;
   readonly city: string;
   /** Prefix dialled before a four-digit internal extension. */
-  readonly phonePrefix: string;
+  readonly phonePrefix: string | null;
 }
 
 export interface DirectoryContactBase {
@@ -37,6 +37,8 @@ export interface DirectoryContactBase {
 export interface FissoContact extends DirectoryContactBase {
   readonly type: "fisso";
   readonly value: FourDigitExtension;
+  /** Optional full number to prefer over the hospital prefix plus extension. */
+  readonly dialValue?: string;
 }
 
 export interface CicalinoContact extends DirectoryContactBase {

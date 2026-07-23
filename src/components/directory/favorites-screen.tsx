@@ -1,12 +1,23 @@
 import { ActivityIndicator } from "react-native";
 
 import { ContactRow } from "@/components/directory/contact-row";
+import { DirectoryLoadError } from "@/components/directory/directory-load-error";
 import { AppSymbol } from "@/components/ui/app-symbol";
 import { useDirectory } from "@/features/directory";
 import { ScrollView, Text, View } from "@/tw";
 
 export function FavoritesScreen() {
-  const { favoriteContacts, getHospitalByContactId, isHydrated } = useDirectory();
+  const {
+    directoryError,
+    favoriteContacts,
+    getHospitalByContactId,
+    isHydrated,
+    reloadDirectory,
+  } = useDirectory();
+
+  if (directoryError) {
+    return <DirectoryLoadError onRetry={reloadDirectory} />;
+  }
 
   if (!isHydrated) {
     return (

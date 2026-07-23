@@ -15,11 +15,6 @@ export {
   sortContactsAlphabetically,
 } from "./helpers";
 export {
-  DEFAULT_HOSPITAL_ID,
-  DIRECTORY_CONTACTS,
-  HOSPITALS,
-} from "./mock-data";
-export {
   DirectoryProvider,
   type DirectoryContextValue,
   useDirectory,

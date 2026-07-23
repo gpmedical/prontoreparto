@@ -63,7 +63,7 @@ export function normalizePhonePrefix(phonePrefix: string): string {
 }
 
 export function formatDialNumber(
-  phonePrefix: Hospital["phonePrefix"],
+  phonePrefix: NonNullable<Hospital["phonePrefix"]>,
   extension: FourDigitExtension,
 ): string {
   return `${normalizePhonePrefix(phonePrefix)}${extension}`;
@@ -78,6 +78,14 @@ export function getContactActionUrl(
   }
 
   if (contact.type === "fisso") {
+    if (contact.dialValue) {
+      return `tel:${normalizePhonePrefix(contact.dialValue)}`;
+    }
+
+    if (!hospital.phonePrefix) {
+      return null;
+    }
+
     return `tel:${formatDialNumber(hospital.phonePrefix, contact.value)}`;
   }
 

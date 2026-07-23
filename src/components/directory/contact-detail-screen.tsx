@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ActivityIndicator, Alert } from "react-native";
 
 import { CONTACT_PRESENTATION, getContactValueLabel } from "@/components/directory/contact-presentation";
+import { DirectoryLoadError } from "@/components/directory/directory-load-error";
 import { AppSymbol } from "@/components/ui/app-symbol";
 import {
   getContactActionUrl,
@@ -15,16 +16,22 @@ import { Pressable, ScrollView, Text, View } from "@/tw";
 export function ContactDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
+    directoryError,
     getContactById,
     getHospitalByContactId,
     isFavorite,
     isHydrated,
+    reloadDirectory,
     toggleFavorite,
   } = useDirectory();
   const [isOpeningAction, setIsOpeningAction] = useState(false);
   const contactId = id as ContactId;
   const contact = getContactById(contactId);
   const hospital = getHospitalByContactId(contactId);
+
+  if (directoryError) {
+    return <DirectoryLoadError onRetry={reloadDirectory} />;
+  }
 
   if (!isHydrated) {
     return (
@@ -53,7 +60,7 @@ export function ContactDetailScreen() {
           Contatto non disponibile
         </Text>
         <Text selectable className="text-center text-sm leading-5 text-pronto-secondary">
-          Potrebbe essere stato rimosso dalla rubrica dimostrativa.
+          Potrebbe essere stato rimosso dalla rubrica.
         </Text>
       </ScrollView>
     );
