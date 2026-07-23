@@ -4,6 +4,7 @@ import type { ComponentProps } from "react";
 const symbols = {
   add: { ios: "plus.circle.fill", android: "add_circle" },
   chevronDown: { ios: "chevron.down", android: "expand_more" },
+  chevronLeft: { ios: "chevron.left", android: "arrow_back" },
   chevronRight: { ios: "chevron.right", android: "chevron_right" },
   chevronUp: { ios: "chevron.up", android: "expand_less" },
   email: { ios: "envelope.fill", android: "email" },

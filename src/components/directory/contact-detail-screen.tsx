@@ -1,7 +1,8 @@
 import * as Linking from "expo-linking";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Alert } from "react-native";
+import Animated, { FadeInRight, FadeOutRight } from "react-native-reanimated";
 
 import { CONTACT_PRESENTATION, getContactValueLabel } from "@/components/directory/contact-presentation";
 import { DirectoryLoadError } from "@/components/directory/directory-load-error";
@@ -13,8 +14,15 @@ import {
 } from "@/features/directory";
 import { Pressable, ScrollView, Text, View } from "@/tw";
 
+const webDetailEntering =
+  process.env.EXPO_OS === "web" ? FadeInRight.duration(220) : undefined;
+const webDetailExiting =
+  process.env.EXPO_OS === "web" ? FadeOutRight.duration(160) : undefined;
+
 export function ContactDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const pathname = usePathname();
+  const router = useRouter();
   const {
     directoryError,
     getContactById,
@@ -104,44 +112,74 @@ export function ContactDetailScreen() {
     }
   }
 
-  return (
-    <ScrollView
-      className="flex-1 bg-pronto-surface"
-      contentContainerClassName="grow gap-5 px-4 pb-8 pt-3"
-      contentInsetAdjustmentBehavior="automatic"
-    >
-      <View className="flex-row items-start gap-3 rounded-2xl border border-pronto-line bg-white px-4 py-3">
-        <View className="min-w-0 flex-1 gap-1">
-          <Text
-            selectable
-            className="break-normal text-xl font-extrabold leading-7 text-pronto-ink"
-            textBreakStrategy="highQuality"
-          >
-            {contact.name}
-          </Text>
-          <Text selectable className="text-sm leading-5 text-pronto-secondary">
-            {hospital.name} · {hospital.city}
-          </Text>
-        </View>
+  function handleBack() {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
 
-        <Pressable
-          accessibilityLabel={favorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
-          accessibilityRole="button"
-          accessibilityState={{ selected: favorite }}
-          className={`h-12 w-12 shrink-0 items-center justify-center rounded-full border active:bg-pronto-pager-soft ${
-            favorite
-              ? "border-pronto-pager bg-pronto-pager-soft"
-              : "border-pronto-line bg-white"
-          }`}
-          onPress={() => toggleFavorite(contact.id)}
+    router.replace(pathname.startsWith("/preferiti") ? "/preferiti" : "/home");
+  }
+
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <Animated.View
+        entering={webDetailEntering}
+        exiting={webDetailExiting}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          className="flex-1 bg-pronto-surface"
+          contentContainerClassName="grow gap-5 px-4 pb-8 pt-3"
+          contentInsetAdjustmentBehavior="automatic"
         >
-          <AppSymbol
-            name={favorite ? "favorite" : "favoriteOutline"}
-            size={25}
-            tintColor={favorite ? "#b45309" : "#5c7d84"}
-          />
-        </Pressable>
-      </View>
+        <View className="flex-row items-start gap-2">
+          <Pressable
+            accessibilityLabel="Indietro"
+            accessibilityRole="button"
+            className="h-12 w-10 shrink-0 items-center justify-center rounded-full active:bg-pronto-teal-soft"
+            onPress={handleBack}
+          >
+            <AppSymbol name="chevronLeft" size={26} tintColor="#006978" />
+          </Pressable>
+
+          <View className="min-w-0 flex-1 flex-row items-start gap-3 rounded-2xl border border-pronto-line bg-white px-4 py-3">
+            <View className="min-w-0 flex-1 items-center gap-1">
+              <Text
+                selectable
+                className="break-normal text-center text-xl font-extrabold leading-7 text-pronto-ink"
+                textBreakStrategy="highQuality"
+              >
+                {contact.name}
+              </Text>
+              <Text
+                selectable
+                className="text-center text-sm leading-5 text-pronto-secondary"
+              >
+                {hospital.name} · {hospital.city}
+              </Text>
+            </View>
+
+            <Pressable
+              accessibilityLabel={favorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
+              accessibilityRole="button"
+              accessibilityState={{ selected: favorite }}
+              className={`h-12 w-12 shrink-0 items-center justify-center rounded-full border active:bg-pronto-pager-soft ${
+                favorite
+                  ? "border-pronto-pager bg-pronto-pager-soft"
+                  : "border-pronto-line bg-white"
+              }`}
+              onPress={() => toggleFavorite(contact.id)}
+            >
+              <AppSymbol
+                name={favorite ? "favorite" : "favoriteOutline"}
+                size={25}
+                tintColor={favorite ? "#b45309" : "#5c7d84"}
+              />
+            </Pressable>
+          </View>
+        </View>
 
       <View className="flex-1 items-center justify-center gap-5 rounded-2xl border border-pronto-line bg-white px-5 py-10">
         <View
@@ -197,6 +235,8 @@ export function ContactDetailScreen() {
         </Pressable>
       ) : null}
 
-    </ScrollView>
+        </ScrollView>
+      </Animated.View>
+    </>
   );
 }

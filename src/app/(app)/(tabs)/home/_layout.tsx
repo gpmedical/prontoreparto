@@ -13,7 +13,10 @@ export default function HomeStackLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="contatto/[id]" options={{ headerTitle: "" }} />
+      <Stack.Screen
+        name="contatto/[id]"
+        options={{ animation: "slide_from_right", headerTitle: "" }}
+      />
     </Stack>
   );
 }
