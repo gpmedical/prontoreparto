@@ -36,7 +36,9 @@ export function ContactRow({
         accessibilityLabel={
           showDetails
             ? `${contact.name}, ${presentation.label}, ${valueLabel}`
-            : contact.name
+            : hospitalName
+              ? `${contact.name}, ${hospitalName}`
+              : contact.name
         }
         accessibilityRole="link"
         className={`flex-row items-center gap-3 bg-white px-4 py-3 active:bg-pronto-teal-soft ${
@@ -49,17 +51,12 @@ export function ContactRow({
         />
 
         <View className="min-w-0 flex-1 gap-1.5">
-          <View className="flex-row items-start justify-between gap-2">
-            <Text
-              selectable
-              className="min-w-0 flex-1 text-base font-bold leading-5 text-pronto-ink"
-            >
-              {contact.name}
-            </Text>
-            {isFavorite ? (
-              <AppSymbol name="favorite" size={16} tintColor="#d97706" />
-            ) : null}
-          </View>
+          <Text
+            selectable
+            className="text-base font-bold leading-5 text-pronto-ink"
+          >
+            {contact.name}
+          </Text>
 
           {showDetails ? (
             <View className="flex-row flex-wrap items-center gap-2">
@@ -86,12 +83,22 @@ export function ContactRow({
             </View>
           ) : null}
 
-          {showDetails && hospitalName ? (
+          {hospitalName ? (
             <Text selectable className="text-xs text-pronto-placeholder" numberOfLines={1}>
               {hospitalName}
             </Text>
           ) : null}
         </View>
+
+        {isFavorite ? (
+          <Text
+            accessibilityElementsHidden
+            className="shrink-0 text-[27px] leading-[27px] text-[#d97706]"
+            importantForAccessibility="no"
+          >
+            ★
+          </Text>
+        ) : null}
 
         <AppSymbol name="chevronRight" size={15} tintColor="#789095" />
       </Pressable>

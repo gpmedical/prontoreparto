@@ -65,6 +65,7 @@ export function FavoritesScreen() {
                   detailTab="preferiti"
                   hospitalName={getHospitalByContactId(contact.id)?.name}
                   isFavorite
+                  showDetails={false}
                 />
               </View>
             ))}

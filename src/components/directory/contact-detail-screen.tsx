@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ActivityIndicator, Alert } from "react-native";
 import Animated, { FadeInRight, FadeOutRight } from "react-native-reanimated";
 
-import { CONTACT_PRESENTATION, getContactValueLabel } from "@/components/directory/contact-presentation";
+import { CONTACT_PRESENTATION } from "@/components/directory/contact-presentation";
 import { DirectoryLoadError } from "@/components/directory/directory-load-error";
 import { AppSymbol } from "@/components/ui/app-symbol";
 import {
@@ -148,7 +148,7 @@ export function ContactDetailScreen() {
             <View className="min-w-0 flex-1 items-center gap-1">
               <Text
                 selectable
-                className="break-normal text-center text-xl font-extrabold leading-7 text-pronto-ink"
+                className="break-normal text-center text-xl font-bold leading-7 text-pronto-ink"
                 textBreakStrategy="highQuality"
               >
                 {contact.name}
@@ -172,11 +172,18 @@ export function ContactDetailScreen() {
               }`}
               onPress={() => toggleFavorite(contact.id)}
             >
-              <AppSymbol
-                name={favorite ? "favorite" : "favoriteOutline"}
-                size={25}
-                tintColor={favorite ? "#b45309" : "#5c7d84"}
-              />
+              {favorite ? (
+                <Text
+                  accessibilityElementsHidden
+                  className="w-[30px] text-center text-[30px] leading-[30px] text-pronto-pager"
+                  importantForAccessibility="no"
+                  style={{ transform: [{ translateY: -2 }] }}
+                >
+                  ★
+                </Text>
+              ) : (
+                <AppSymbol name="favoriteOutline" size={25} tintColor="#5c7d84" />
+              )}
             </Pressable>
           </View>
         </View>
@@ -220,17 +227,15 @@ export function ContactDetailScreen() {
           disabled={isOpeningAction}
           onPress={handleContactAction}
         >
-          <AppSymbol
-            name={contact.type === "email" ? "email" : "phone"}
-            size={21}
-            tintColor="#ffffff"
-          />
-          <Text className="text-base font-extrabold text-white">
+          {isEmailAction ? (
+            <AppSymbol name="email" size={21} tintColor="#ffffff" />
+          ) : null}
+          <Text className="text-base font-bold text-white">
             {isOpeningAction
               ? "Apertura…"
               : contact.type === "email"
                 ? "Scrivi un'email"
-                : `Chiama ${getContactValueLabel(contact)}`}
+                : "Chiama"}
           </Text>
         </Pressable>
       ) : null}
