@@ -5,11 +5,7 @@ import {
   isValidEmailAddress,
   sortContactsAlphabetically,
 } from "./helpers";
-import type {
-  DirectoryContact,
-  DirectoryContactKind,
-  Hospital,
-} from "./types";
+import type { DirectoryContact, Hospital } from "./types";
 
 type DirectoryData = {
   readonly hospitals: readonly Hospital[];
@@ -20,7 +16,6 @@ type ContactRow = {
   readonly id: string;
   readonly hospitalId: string;
   readonly name: string;
-  readonly kind: DirectoryContactKind;
   readonly searchTerms: readonly string[];
 };
 
@@ -76,12 +71,7 @@ function parseContactRows(value: unknown): ContactRow[] {
       throw new Error("Un contatto ricevuto non e valido.");
     }
 
-    const kind = row.kind;
     const searchTerms = row.search_terms;
-
-    if (kind !== "reparto" && kind !== "servizio" && kind !== "ruolo") {
-      throw new Error("La categoria di un contatto non e valida.");
-    }
 
     if (
       !Array.isArray(searchTerms) ||
@@ -94,7 +84,6 @@ function parseContactRows(value: unknown): ContactRow[] {
       id: requireString(row, "id"),
       hospitalId: requireString(row, "hospital_id"),
       name: requireString(row, "name"),
-      kind,
       searchTerms,
     };
   });
@@ -131,7 +120,6 @@ function parseDirectoryContacts(
       id,
       hospitalId: sourceContact.hospitalId,
       name: sourceContact.name,
-      kind: sourceContact.kind,
       searchTerms: sourceContact.searchTerms,
     };
 
@@ -174,7 +162,7 @@ export async function fetchDirectoryData(
       .order("name"),
     client
       .from("contacts")
-      .select("id, hospital_id, name, kind, search_terms")
+      .select("id, hospital_id, name, search_terms")
       .order("name"),
     client
       .from("contact_methods")
@@ -201,4 +189,3 @@ export async function fetchDirectoryData(
 
   return { hospitals, contacts };
 }
-

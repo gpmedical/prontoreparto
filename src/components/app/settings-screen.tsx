@@ -113,12 +113,12 @@ export function SettingsScreen() {
   }
 
   return (
-    <AppScreen subtitle="Gestisci le preferenze dell'app e il tuo account.">
+    <AppScreen>
       <View className="gap-4 rounded-2xl border border-pronto-line bg-white p-5">
         <Text
           accessibilityRole="header"
           selectable
-          className="text-lg font-extrabold text-pronto-ink"
+          className="text-lg font-bold text-pronto-ink"
         >
           Account
         </Text>
@@ -135,7 +135,7 @@ export function SettingsScreen() {
               </Text>
             </View>
             <View className="min-w-0 flex-1 gap-1">
-              <Text selectable className="text-base font-extrabold text-pronto-ink">
+              <Text selectable className="text-base font-bold text-pronto-ink">
                 {displayName}
               </Text>
               <Text selectable className="text-sm text-pronto-secondary">
@@ -158,7 +158,7 @@ export function SettingsScreen() {
         <Text
           accessibilityRole="header"
           selectable
-          className="text-lg font-extrabold text-pronto-ink"
+          className="text-lg font-bold text-pronto-ink"
         >
           Preferenze
         </Text>
@@ -173,21 +173,10 @@ export function SettingsScreen() {
         <Text
           accessibilityRole="header"
           selectable
-          className="text-lg font-extrabold text-pronto-ink"
+          className="text-lg font-bold text-pronto-ink"
         >
           Dati e privacy
         </Text>
-        <SettingRow
-          label="Rubrica"
-          value="Supabase"
-          description="I contatti attivi vengono caricati da Supabase e sono disponibili solo agli utenti autenticati."
-        />
-        <View className="h-px bg-pronto-line" />
-        <SettingRow
-          label="Suggerimenti"
-          value="Non attivi"
-          description="Nessuna proposta viene inviata o salvata in questa versione."
-        />
       </View>
 
       <View className="gap-3 pb-2">
@@ -210,8 +199,8 @@ export function SettingsScreen() {
           onPress={openDeleteDialog}
           className="min-h-[52px] items-center justify-center rounded-xl bg-pronto-danger px-4 active:opacity-80 disabled:opacity-60"
         >
-          <Text className="text-base font-extrabold text-white">
-            Elimina il tuo account
+          <Text className="text-base font-bold text-white">
+            Elimina account
           </Text>
         </Pressable>
 
@@ -223,7 +212,7 @@ export function SettingsScreen() {
           onPress={handleSignOut}
           className="min-h-[52px] items-center justify-center rounded-xl border border-pronto-teal-dark bg-white px-4 active:bg-pronto-teal-soft disabled:opacity-60"
         >
-          <Text className="text-base font-extrabold text-pronto-teal-dark">
+          <Text className="text-base font-bold text-pronto-teal-dark">
             {isSigningOut ? "Uscita in corso…" : "Esci dall'account"}
           </Text>
         </Pressable>

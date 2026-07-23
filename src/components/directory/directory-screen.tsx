@@ -99,7 +99,7 @@ export function DirectoryScreen() {
           autoCorrect={false}
           className="min-w-0 flex-1 py-3 text-base text-pronto-ink"
           onChangeText={setQuery}
-          placeholder="Cerca reparto, servizio o ruolo"
+          placeholder="Cerca nome, contatto o numero"
           placeholderTextColor={placeholderTextColor}
           returnKeyType="search"
           value={query}
@@ -132,7 +132,7 @@ export function DirectoryScreen() {
               Nessun contatto trovato
             </Text>
             <Text selectable className="text-center text-sm leading-5 text-pronto-secondary">
-              Prova con un altro nome, reparto o numero.
+              Prova con un altro nome o numero.
             </Text>
           </View>
         )}

@@ -4,7 +4,7 @@ import { ScrollView, Text, View } from "@/tw";
 
 type AppScreenProps = {
   children: ReactNode;
-  subtitle: string;
+  subtitle?: string;
 };
 
 export function AppScreen({ children, subtitle }: AppScreenProps) {
@@ -13,14 +13,17 @@ export function AppScreen({ children, subtitle }: AppScreenProps) {
       className="flex-1 bg-pronto-surface"
       contentContainerClassName="grow items-center px-4 py-5"
       contentInsetAdjustmentBehavior="automatic"
+      keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
       <View className="w-full gap-6" style={{ maxWidth: 680 }}>
-        <View className="px-1">
-          <Text selectable className="text-base leading-6 text-pronto-secondary">
-            {subtitle}
-          </Text>
-        </View>
+        {subtitle ? (
+          <View className="px-1">
+            <Text selectable className="text-base leading-6 text-pronto-secondary">
+              {subtitle}
+            </Text>
+          </View>
+        ) : null}
 
         {children}
       </View>

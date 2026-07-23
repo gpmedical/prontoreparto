@@ -3,6 +3,7 @@ import type { ComponentProps } from "react";
 
 const symbols = {
   add: { ios: "plus.circle.fill", android: "add_circle" },
+  check: { ios: "checkmark.circle.fill", android: "check_circle" },
   chevronDown: { ios: "chevron.down", android: "expand_more" },
   chevronLeft: { ios: "chevron.left", android: "arrow_back" },
   chevronRight: { ios: "chevron.right", android: "chevron_right" },

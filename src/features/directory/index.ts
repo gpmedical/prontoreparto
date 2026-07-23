@@ -25,7 +25,6 @@ export type {
   ContactType,
   DirectoryContact,
   DirectoryContactBase,
-  DirectoryContactKind,
   DirectoryPreferences,
   DirectorySection,
   EmailContact,

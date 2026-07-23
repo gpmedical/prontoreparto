@@ -4,8 +4,6 @@ export type ContactId = string;
 
 export type ContactType = "fisso" | "cicalino" | "email";
 
-export type DirectoryContactKind = "reparto" | "servizio" | "ruolo";
-
 declare const fourDigitExtensionBrand: unique symbol;
 
 /**
@@ -30,7 +28,6 @@ export interface DirectoryContactBase {
   readonly id: ContactId;
   readonly hospitalId: HospitalId;
   readonly name: string;
-  readonly kind: DirectoryContactKind;
   readonly searchTerms?: readonly string[];
 }
 
