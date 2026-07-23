@@ -1,7 +1,7 @@
 import * as Linking from "expo-linking";
 import { Stack, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Alert } from "react-native";
+import { ActivityIndicator, Alert, useWindowDimensions } from "react-native";
 import Animated, { FadeInRight, FadeOutRight } from "react-native-reanimated";
 
 import { CONTACT_PRESENTATION } from "@/components/directory/contact-presentation";
@@ -23,8 +23,13 @@ const webDetailExiting =
 const contactTitleBaseFontSize = 20;
 const contactTitleMediumFontSize = 18;
 const contactTitleMinimumFontSize = 16;
+const compactTitleViewportMaxWidth = 560;
 
-function getInitialContactTitleFontSize(title: string) {
+function getInitialContactTitleFontSize(title: string, viewportWidth: number) {
+  if (viewportWidth > compactTitleViewportMaxWidth) {
+    return contactTitleBaseFontSize;
+  }
+
   if (title.length >= 60) {
     return contactTitleMinimumFontSize;
   }
@@ -40,6 +45,7 @@ export function ContactDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const pathname = usePathname();
   const router = useRouter();
+  const { width: viewportWidth } = useWindowDimensions();
   const {
     directoryError,
     getContactById,
@@ -94,6 +100,10 @@ export function ContactDetailScreen() {
   const presentation = CONTACT_PRESENTATION[contact.type];
   const favorite = isFavorite(contact.id);
   const actionUrl = getContactActionUrl(contact, hospital);
+  const initialContactTitleFontSize = getInitialContactTitleFontSize(
+    contact.name,
+    viewportWidth,
+  );
 
   async function handleContactAction() {
     if (!actionUrl) {
@@ -159,8 +169,8 @@ export function ContactDetailScreen() {
             <View className="min-w-0 flex-1 flex-row items-start gap-3 rounded-2xl border border-pronto-line bg-white px-4 py-3">
               <View className="min-w-0 flex-1 items-center gap-1">
                 <AutoShrinkingText
-                  key={`${contact.id}:${contact.name}`}
-                  initialFontSize={getInitialContactTitleFontSize(contact.name)}
+                  key={`${contact.id}:${contact.name}:${initialContactTitleFontSize}`}
+                  initialFontSize={initialContactTitleFontSize}
                   maxFontSize={contactTitleBaseFontSize}
                   maxLines={2}
                   minFontSize={contactTitleMinimumFontSize}
